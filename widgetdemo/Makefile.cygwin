@@ -1,0 +1,50 @@
+# ########################################################################
+# Libraries:
+#
+
+INC     = -I/usr/local/X11R6.4/include -I../cygwin/include
+LIB     = -lm -lX11 -lXpm -lXext -liberty -ldb
+LIB_DIR = -L/usr/local/X11R6.4/lib -L../cygwin/lib
+
+
+# ########################################################################
+# Compiler Flags:
+#
+
+CFLAGS  = -D__USE_BSD -O1 -funroll-loops -D__WIN32__ -D__CYGWIN32__ -Dc_plusplus -D__cplusplus
+
+
+# ########################################################################
+# Program source and header files:
+#
+
+CPP = g++
+BIN = demo
+HDR =
+SRC = demo.cpp disk.cpp dither.cpp fio.cpp ctype.cpp osw-x.cpp strexp.cpp string.cpp tga.cpp \
+      timming.cpp \
+      wbutton.cpp wclist.cpp wdialog.cpp wfbrowser.cpp wfile.cpp wglobal.cpp \
+      whintwin.cpp wlist.cpp wmenu.cpp wmenubar.cpp wprogressbar.cpp wprompt.cpp \
+      wpstepper.cpp wpulist.cpp wreg.cpp wscalebar.cpp wscrollbar.cpp \
+      wtogglebtn.cpp wtogglearray.cpp wutils.cpp wviewer.cpp
+OBJ = $(SRC:.c=.o)
+.cpp.o:
+	$(CPP) -c $*.cpp $(INC) $(CFLAGS)
+
+
+# ########################################################################
+# Build rules:
+#
+
+$(BIN): $(OBJ)
+	$(CPP) $(OBJ) -o $(BIN) $(LIB) $(LIB_DIR)
+      
+all: $(BIN)
+
+
+# ########################################################################
+# Maintainance and misc rules:
+#
+        
+clean:  
+	rm -f *.exe core *.o

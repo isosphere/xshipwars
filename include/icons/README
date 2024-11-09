@@ -1,0 +1,5 @@
+   These are various icon images used throughout the program.
+They are in Targa 24-bit RGB color format and should be
+hard coded into the program that #includes them.
+
+The Targa library (tga.c) will read these images.

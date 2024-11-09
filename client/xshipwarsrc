@@ -1,0 +1,322 @@
+# XShipWars Configuration File
+# Version: 1.34.0
+# You may manually edit this file.
+#
+
+
+# This configuration file version:
+
+VersionMajor = 1
+VersionMinor = 34
+VersionRelease = 0
+
+
+# Directories and files:
+
+LocalToplevelDir = .shipwars
+ToplevelDir = /usr/share/games/xshipwars
+EtcDir = etc
+ImagesDir = images
+SoundsDir = sounds
+DownloadsDir = .shipwars
+StarChartDir = .shipwars
+SoundServerStartCommand = /usr/sbin/yiff
+JSCalibrationFile = /home/learfox/.joystick
+MainPageFile = main.page
+DestroyedPageFile = destroyed.page
+OCSNamesFile = default.ocsn
+ISRFile = default.isr
+SoundSchemeFile = default.ss
+LogFile = xsw.log
+UniverseListFile = universes
+
+
+# Network
+
+NetDeviceMaxLoad = 2100
+NetIntervalAutoTune = yes
+NetIntervalTuneInterval = 1000
+DefaultServerAddress = xsw.terminator.net
+DefaultServerPort = 1701
+DefaultLoginName = Guest
+DefaultLoginPassword = guest
+
+
+# General
+
+AutoMapEconomyWindow = no
+AutoViewscreenZoom = on
+ScannerOrientation = galactic_core
+ThrottleScopeMode = bidirectional
+LocalUpdates = on
+ViewScreenMarks = yes
+ViewScreenLabels = 3
+ShowLensFlares = yes
+ShowStrobeGlow = yes
+ShowNebulaGlow = yes
+FormalNameLabels = 1
+NotifyScannerContacts = on
+ShowNetErrors = no
+ShowServerErrors = yes
+SoundServerType = 0
+Sounds = 0
+Music = off
+SoundServerConnectionArgument = 127.0.0.1:9433
+Units = English
+AsyncImageLoading = yes
+AsyncImageLoadPixels = 250000
+
+
+AutoMapUniverseListWindow = yes
+UnivListWinX = 464
+UnivListWinY = 298
+UnivListWinWidth = 353
+UnivListWinHeight = 428
+
+
+StarChartWinX = 0
+StarChartWinY = 0
+StarChartWinWidth = 527
+StarChartWinHeight = 414
+
+
+# Quick menu commands:
+
+BeginQuickMenuCommand
+    Name = XShipWars Commands
+    Type = 4
+    ActionCode = 0
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = None
+    Type = 3
+    ActionCode = 0
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Connect...
+    Type = 0
+    ActionCode = 100
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Connect Last
+    Type = 0
+    ActionCode = 101
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Refresh
+    Type = 0
+    ActionCode = 102
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Auto Interval Tune
+    Type = 0
+    ActionCode = 103
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Disconnect
+    Type = 0
+    ActionCode = 104
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = None
+    Type = 3
+    ActionCode = 0
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Star Chart...
+    Type = 0
+    ActionCode = 310
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Script...
+    Type = 0
+    ActionCode = 14
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Economy...
+    Type = 0
+    ActionCode = 308
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Load Image Set...
+    Type = 0
+    ActionCode = 12
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Load Sounds Scheme...
+    Type = 0
+    ActionCode = 13
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Run Server...
+    Type = 0
+    ActionCode = 10
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = None
+    Type = 3
+    ActionCode = 0
+EndQuickMenuCommand
+
+BeginQuickMenuCommand
+    Name = Options...
+    Type = 0
+    ActionCode = 304
+EndQuickMenuCommand
+
+
+# Key Mappings
+
+BeginKeyMap
+    Help = 67
+    Exit = 53
+    TurnLeft = 100
+    TurnRight = 102
+    ThrottleIncrease = 98
+    ThrottleDecrease = 104
+    ThrottleIdle = 107
+    FireWeapon = 65
+    OmniDirectionalThrust = 64
+    ExternalDampers = 56
+    LightsVector = 46
+    LightsStrobe = 33
+    LightsLumination = 55
+    WeaponFreq = 29
+    ShieldState = 39
+    ShieldFreq = 41
+    DamageControl = 54
+    CloakState = 52
+    SetIntercept = 31
+    Hail = 43
+    SetChannel = 45
+    ViewscreenZoomIn = 21
+    ViewscreenZoomOut = 20
+    ViewscreenAutoZoom = 51
+    ScannerToggle = 28
+    ScannerZoomIn = 60
+    ScannerZoomOut = 59
+    ScannerZoomMin = 57
+    ScannerZoomMax = 32
+    ScannerOrient = 42
+    EngineState = 49
+    ThrottleMode = 74
+    WeaponsLock = 23
+    WeaponsUnlock = 30
+    WeaponsOnline = 25
+    SelectWeaponPrev = 24
+    SelectWeaponNext = 38
+    SelectWeapon1 = 10
+    SelectWeapon2 = 11
+    SelectWeapon3 = 12
+    SelectWeapon4 = 13
+    SelectWeapon5 = 14
+    SelectWeapon6 = 15
+    SelectWeapon7 = 16
+    SelectWeapon8 = 17
+    SelectWeapon9 = 18
+    SendMessage = 48
+    ViewscreenMarkings = 68
+    ViewscreenLabels = 69
+    EnergySaverMode = 70
+    NetIntervalDecrement = 34
+    NetIntervalIncrement = 35
+    MessageScrollUp = 99
+    MessageScrollDown = 105
+    MapEconomy = 47
+    MapStarChart = 58
+    NetConnect = 75
+    NetDisconnect = 76
+    NetRefresh = 95
+    NetConnectLast = 96
+    ClientCommand = 61
+    ServerCommand = 26
+    ScreenShot = 111
+EndKeyMap
+
+
+# Joystick mappings:
+
+
+
+# Controller type (should be specified after keys and joystick mappings
+
+ControlType = keyboard
+
+
+ColorStandardText = #ffc8f8
+ColorBoldText = #fff0fe
+ColorWithdrawnText = #804080
+
+# Colors: Bridge Panel
+ColorBPStandardText = #ffc8f8
+ColorBPBoldText = #ffeafe
+ColorBPWithdrawnText = #804080
+ColorBPLightOutline = #ff80e8
+ColorBPNormalOutline = #a03098
+ColorBPDarkOutline = #600858
+
+ColorBPWarning = #ffff00
+ColorBPDanger = #ff2000
+ColorBPCritical = #e00000
+
+ColorBPFriendly = #08f090
+ColorBPUnknown = #ffeafe
+ColorBPHostile = #ff0000
+
+# Colors: Bridge Panel Outline
+ColorBPHull = #e030d0
+ColorBPPower = #f040d0
+ColorBPVis = #d030f0
+ColorBPShields = #f050c0
+ColorBPDmgCtl = #f080d0
+ColorBPThrottle = #ff30d0
+ColorBPThrottleRev = #e0ffd0
+
+# Colors: Viewscreen Labels
+ColorVSLabelBg = #000000
+ColorVSLabelFg = #ffd0fa
+
+# Colors: Scanner Markings
+ColorScMarkUnknown = #f020ff
+ColorScMarkLocked = #ffff40
+ColorScMarkWeapon = #ff1000
+ColorScMarkHome = #9080ff
+ColorScMarkArea = #e010d8
+
+# Colors: Keymap Query Dialog
+ColorKeymapQueryBg = #1830ff
+ColorKeymapQueryFg = #ffffff
+
+# Colors: Viewscreen Graphics
+ColorHeadingArrow = #00f0ff
+ColorLockArrow = #ffff10
+ColorLockCursor = #ffff10
+ColorStreamGreen = #00ff78
+ColorStreamOrange = #ff9030
+ColorStreamPurple = #ff70ff
+ColorStreamYellow = #fff480
+ColorShieldBlue = #a0e0ff
+ColorVisibilityMarker = #d020ff
+ColorStarGlow = #ffffff
+
+# Colors: Starchart
+ColorChartBackground = #000000
+ColorChartGrid = #400834
+ColorChartSectorGrid = #801978
+ColorChartCrossHairs = #f8b3fa
+
+

@@ -1,0 +1,1 @@
+../widgets/wreg.cpp

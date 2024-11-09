@@ -1,0 +1,86 @@
+# Install values and rules for UNIX
+#
+#   Do not use this Makefile directly! It is intended to be called
+#   by another Makefile.
+#
+#   Note, the following parameters must be already defined by
+#   the calling Makefile:
+#
+#	BIN
+#	PREFIX
+#
+
+INSTALL      = install
+INSTBINFLAGS = -m 0755
+INSTUIDFLAGS = -m 4755
+INSTLIBFLAGS = -m 0755
+INSTINCFLAGS = -m 0644
+INSTMANFLAGS = -m 0644
+INSTCFGFLAGS = -m 0644
+INSTDATFLAGS = -m 0644
+
+COPY      = cp
+# Note, do not add the -f argument to COPYFLAGS since user might be
+# accidentally installing over an existing version of a configuration or
+# data file and we don't want to do that without asking first.
+COPYFLAGS = -v -i
+
+MKDIR      = mkdir
+MKDIRFLAGS = -p
+
+
+SWSERV_BASE_DIR = $(PREFIX)/swserv
+
+SWSERV_BIN_DIR  = $(SWSERV_BASE_DIR)/bin
+SWSERV_DB_DIR   = $(SWSERV_BASE_DIR)/db
+SWSERV_ETC_DIR  = $(SWSERV_BASE_DIR)/etc
+SWSERV_LOGS_DIR = $(SWSERV_BASE_DIR)/logs
+SWSERV_HTML_DIR = $(SWSERV_BASE_DIR)/public_html
+SWSERV_TMP_DIR  = $(SWSERV_BASE_DIR)/tmp
+
+HR = "-------------------------------------------------------------------------"
+
+install:
+	$(MKDIR) $(MKDIRFLAGS) $(SWSERV_BASE_DIR)
+	$(COPY) $(COPYFLAGS) restart $(SWSERV_BASE_DIR)
+
+	$(MKDIR) $(MKDIRFLAGS) $(SWSERV_BIN_DIR)
+	$(INSTALL) $(INSTBINFLAGS) $(BIN) $(SWSERV_BIN_DIR)
+
+	$(MKDIR) $(MKDIRFLAGS) $(SWSERV_DB_DIR)
+	$(COPY) $(COPYFLAGS) generic_in.unv $(SWSERV_DB_DIR)
+	$(COPY) $(COPYFLAGS) default.ocs $(SWSERV_DB_DIR)
+	$(COPY) $(COPYFLAGS) default.opm $(SWSERV_DB_DIR)
+
+	$(MKDIR) $(MKDIRFLAGS) $(SWSERV_ETC_DIR)
+	$(COPY) $(COPYFLAGS) default.conf $(SWSERV_ETC_DIR)
+
+	$(MKDIR) $(MKDIRFLAGS) $(SWSERV_LOGS_DIR)
+	$(MKDIR) $(MKDIRFLAGS) $(SWSERV_HTML_DIR)
+	$(MKDIR) $(MKDIRFLAGS) $(SWSERV_TMP_DIR)
+
+	@echo $(HR)
+	@echo "Program $(BIN) installed in:"
+	@echo " "
+	@echo "        $(SWSERV_BIN_DIR)"
+	@echo " "
+	@echo "Data files installed in:"
+	@echo " "
+	@echo "        $(SWSERV_DB_DIR)"
+	@echo " "
+	@echo "Configuration files installed in:"
+	@echo " "
+	@echo "        $(SWSERV_ETC_DIR)"
+	@echo " "
+	@echo $(HR)
+	@echo " "
+	@echo "Before you run the program, please edit (as needed) the files:"
+	@echo " "
+	@echo "        $(SWSERV_BASE_DIR)/restart"
+	@echo "        $(SWSERV_ETC_DIR)/default.conf"
+	@echo " "
+	@echo "To run the program, use the script file: $(SWSERV_BASE_DIR)/restart"
+	@echo " "
+	@echo "All sample configuration files are throughly commented, please read"
+	@echo "those comments carefully before changing any values."
+	@echo " "

@@ -1,0 +1,12 @@
+MIN and MAX #def's with different () now use longest () version.
+
+../include/os.h redefines _PATH_VI, from /usr/include/paths.h in some cases:
+/* Apparently VI has become the standard editor for UNIX. */
+os.h:
+#ifndef _PATH_VI
+# define _PATH_VI		"/usr/bin/vi"
+#endif
+
+paths.h:
+#define _PATH_VI        "/bin/vi"
+

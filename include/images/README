@@ -1,0 +1,7 @@
+   These are various images for general purpose use,
+some of these images are used by the widget set.
+
+They are in Targa 24-bit RGB color format and should be
+hard coded into the program that #includes them.
+
+The Targa library (tga.c) will read these images.

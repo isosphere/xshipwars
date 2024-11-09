@@ -1,0 +1,306 @@
+#    ShipWars: Object Create Scripts
+#
+#	Object Create Scripts (abbriviated OCSs) are `rules' for
+#	creating objects (such as weapon objects) in recursive
+#	patterns.
+#
+#	OCSs do not define the actual parameter of each object
+#	created, that is defined by the .opm file.
+#
+#
+#	Format of this file is as follows:
+#
+#	BeginOCSEntry	Marks the beginning of an OCS (Object Create
+#			Script) configuration block.
+#
+#	EndOCSEntry	Marks the end of an OCS configuration
+#			block.
+#
+#
+#	OCSEntry configuration block members:
+#
+#	Code			Specifies the code of this OCS, other
+#				resources will reffer to this OCS by this
+#				specified code.
+#
+#	OPMName			Specifies the OPM (Object Parameter
+#				Model) to be used as referance for the
+#				newly created object(s).
+#
+#	Coppies			Specifies the number of coppies
+#				(recursions).
+#
+#	Heading			Specifies the Z-axis of origin creation
+#				point angle in radians.
+#
+#	Pitch			Specifies the X-axis of origin creation
+#				point angle in radians.
+#
+#	Bank			Specifies the Y-axis of origin creation
+#				point angle in radians.
+#
+#	Radius			Specifies the distance from the origin
+#				creation point in XSW real units.
+#
+
+
+# ############################################################################
+#
+#   1 to 19: Reserved
+#
+#   (Note: 0 is considered garbage.)
+
+
+# ############################################################################
+#
+#   20 to 59: Weapon Objects
+#
+
+# NULL weapon
+BeginOCSEntry
+    Code = 20
+    OPMName = NULL Weapon
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0.003
+EndOCSEntry
+
+
+# Stream phazer: yellow
+BeginOCSEntry
+    Code = 21
+    OPMName = Phazer Stream Yellow
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0
+EndOCSEntry
+
+# Stream phazer: orange
+BeginOCSEntry
+    Code = 22
+    OPMName = Phazer Stream Orange
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0
+EndOCSEntry
+
+# Stream phazer: purple
+BeginOCSEntry
+    Code = 23
+    OPMName = Phazer Stream Purple
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0
+EndOCSEntry
+
+
+# Single pulse phazer
+BeginOCSEntry
+    Code = 25
+    OPMName = Phazer Pulse
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0.039
+EndOCSEntry
+
+# Double pulse phazer
+BeginOCSEntry
+    Code = 26
+    OPMName = Phazer Pulse
+    Coppies = 2
+    Heading = 0.92664063
+    Pitch = 0
+    Bank = 0
+    Radius = 0.036
+EndOCSEntry
+
+
+# Stream disruptor
+BeginOCSEntry
+    Code = 30
+    OPMName = Disruptor Stream
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0 
+EndOCSEntry  
+
+# Single pulse disruptor
+BeginOCSEntry
+    Code = 31
+    OPMName = Disruptor Pulse
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0
+EndOCSEntry
+
+# Double pulse disruptor
+BeginOCSEntry
+    Code = 32
+    OPMName = Disruptor Pulse
+    Coppies = 2
+    Heading = 0.87266463
+    Pitch = 0
+    Bank = 0
+    Radius = 0.039
+EndOCSEntry
+
+# Single pulse polaron
+BeginOCSEntry
+    Code = 33
+    OPMName = Polaron Pulse
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0
+EndOCSEntry
+
+# Double pulse polaron
+BeginOCSEntry
+    Code = 34
+    OPMName = Polaron Pulse
+    Coppies = 2
+    Heading = 0.87266463
+    Pitch = 0
+    Bank = 0
+    Radius = 0.039
+EndOCSEntry
+
+
+# Expanding sphere phazer (used by Cardassian vessels)
+BeginOCSEntry
+    Code = 40
+    OPMName = Phazer Expanding Sphere
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0
+EndOCSEntry
+
+# Species 8472 Energy Conductor Weapon
+BeginOCSEntry
+    Code = 41
+    OPMName = Phazer Stream Orange
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0   
+    Radius = 0
+EndOCSEntry
+
+# Bolt Plasma
+BeginOCSEntry  
+    Code = 42
+    OPMName = Bolt Plasma
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0  
+    Radius = 0
+EndOCSEntry
+
+# Cutting Beam
+BeginOCSEntry
+    Code = 43
+    OPMName = Cutting Beam
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0
+EndOCSEntry
+
+# Primary Energy Weapon
+BeginOCSEntry
+    Code = 44
+# Use Cutting Beam OPM for now.
+    OPMName = Cutting Beam
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0
+EndOCSEntry
+
+# Polaron Beam (used by Dominion vessels)
+BeginOCSEntry
+    Code = 45
+    OPMName = Phazer Stream Purple
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0
+EndOCSEntry
+
+
+# Photon torpedo single fire
+BeginOCSEntry
+    Code = 50
+    OPMName = Photon Torpedo
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0.02
+EndOCSEntry
+
+# Photon torpedo double fire
+BeginOCSEntry
+    Code = 51
+    OPMName = Photon Torpedo
+    Coppies = 2
+    Heading = 0.87266463
+    Pitch = 0
+    Bank = 0
+    Radius = 0.02
+EndOCSEntry    
+
+# Plasma torpedo: single fire
+BeginOCSEntry
+    Code = 55
+    OPMName = Plasma Torpedo
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0.02
+EndOCSEntry
+
+# Quantom torpedo: single fire
+BeginOCSEntry
+    Code = 60
+    OPMName = Quantom Torpedo
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0.02
+EndOCSEntry
+
+
+# APC (Atmospheric Penetrating Cruise) Warhead
+BeginOCSEntry
+    Code = 80
+    OPMName = APC Warhead
+    Coppies = 1
+    Heading = 0
+    Pitch = 0
+    Bank = 0
+    Radius = 0.02
+EndOCSEntry

@@ -1,0 +1,9 @@
+HDR = config.h conwin.h mon.h mesgwin.h
+
+SRC = conwin.cpp ctype.cpp disk.cpp fio.cpp main.cpp mesgwin.cpp monalloc.cpp \
+      moncb.cpp monmanage.cpp monmacros.cpp netio.cpp osw-x.cpp prochandle.cpp \
+      strexp.cpp string.cpp tga.cpp tgadither.cpp timming.cpp \
+      wbutton.cpp wclist.cpp wdialog.cpp wfbrowser.cpp wfile.cpp wglobal.cpp \
+      whintwin.cpp wlist.cpp wmenu.cpp wmenubar.cpp wprogressbar.cpp wprompt.cpp \
+      wpstepper.cpp wpulist.cpp wreg.cpp wscalebar.cpp wscrollbar.cpp \
+      wtogglebtn.cpp wtogglearray.cpp wutils.cpp wviewer.cpp

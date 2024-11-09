@@ -1,0 +1,5 @@
+   These images are mainly intended for pointer cursors. They
+are hard coded into the program that #includes them.
+
+These images should be in XPM format, the libXpm will read
+them.

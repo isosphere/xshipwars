@@ -1,0 +1,24 @@
+HDR = blitting.h imagepaths.h jsmapwin.h keymap.h keymapwin.h net.h \
+      optwin.h page.h splash.h univlist.h xsw.h
+
+SRC = autointerval.cpp blitbeam.cpp blitcircle.cpp blitcursor.cpp blitfade.cpp \
+      blitline.cpp blitptlt.cpp blitstd.cpp blittile.cpp bridgedraw.cpp \
+      bridgegui.cpp bridgemanage.cpp bridgescrshot.cpp cmd.cpp cmdaint.cpp \
+      cmdconnect.cpp cmddebug.cpp cmddisconnect.cpp cmdexit.cpp cmdhelp.cpp \
+      cmdlname.cpp cmdlog.cpp cmdlpass.cpp cmdmemory.cpp cmdnetint.cpp \
+      cmdrefresh.cpp cmdservscript.cpp cmdset.cpp cmdsynctime.cpp cmdtest.cpp \
+      cmdversion.cpp ctype.cpp db.cpp dbinrange.cpp dbutil.cpp disk.cpp \
+      ecowin.cpp fio.cpp gctl.cpp images.cpp imglabels.cpp isrefs.cpp isrefsfile.cpp \
+      jsmap.cpp jsmapwin.cpp keymapwin.cpp log.cpp main.cpp mesgwin.cpp mf.cpp net.cpp \
+      netio.cpp netrecv.cpp netsend.cpp ocsnames.cpp ocsnamesfile.cpp \
+      optwingui.cpp optwinop.cpp osw-x.cpp page.cpp pagefile.cpp prochandle.cpp \
+      qmenu.cpp rcfile.cpp rengine.cpp scanner.cpp serverscript.cpp sound.cpp \
+      splash.cpp ss.cpp ssfile.cpp starchartwin.cpp strexp.cpp string.cpp tga.cpp \
+      tgadither.cpp timming.cpp unitconv.cpp unvmain.cpp unvmatch.cpp unvmath.cpp \
+      unvfile.cpp unvutil.cpp univeditwin.cpp univlist.cpp univlistfile.cpp \
+      univlistwin.cpp urlparse.cpp vsdraw.cpp vsevent.cpp vslabels.cpp \
+      wbutton.cpp wclist.cpp wdialog.cpp wfbrowser.cpp wfile.cpp wglobal.cpp \
+      whintwin.cpp wlist.cpp wmenu.cpp wmenubar.cpp wprogressbar.cpp wprompt.cpp \
+      wpstepper.cpp wpulist.cpp wreg.cpp wscalebar.cpp wscrollbar.cpp \
+      wtogglebtn.cpp wtogglearray.cpp wutils.cpp wviewer.cpp \
+      xswaction.cpp xswinstall.cpp xswfbcb.cpp xswproc.cpp

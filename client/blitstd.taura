@@ -1,0 +1,3460 @@
+/*
+                  Buffer Blitting: Standard Blitting Routines
+
+	Functions:
+
+	BlitBufNormal8()
+	BlitBufNormal15()
+	BlitBufNormal16()
+	BlitBufNormal32()
+	BlitBufNormal()
+
+	BlitBufAbsolute8()
+	BlitBufAbsolute15()
+	BlitBufAbsolute16()
+	BlitBufAbsolute32()
+	BlitBufAbsolute()
+
+	BlitBufAdditive8()
+	BlitBufAdditive15()
+	BlitBufAdditive16()
+	BlitBufAdditive32()
+	BlitBufAdditive()
+
+	BlitBufSolid8()
+	BlitBufSolid15()
+	BlitBufSolid16()
+	BlitBufSolid32()
+	BlitBufSolid()
+
+	---
+
+	These functions perform blitting of two buffers.
+	A porition of the source buffer to a position on the destination
+	buffer with `zooming' support.
+
+	Zooming is currently limited to 0.01 to 1.00 ranges.
+
+ */
+
+#include "blitting.h"
+
+
+
+/*
+ *   Checks if tx, ty, sy, and sy are 'on the screen':
+ *
+ *      The variables beginning with a t means target, and respectively
+ *	x, y, width, and height.
+ *
+ *      The variables beginning with a s means source, and respectively
+ *      x, y, width, and height.
+ */
+#define ISPOSOFFSCREEN(tx,ty,tw,th,sx,sy,sw,sh) \
+( (tx < 0) || (ty < 0) || (tx >= tw) || (ty >= th) ||\
+(sx < 0) || (sy < 0) || (sx >= sw) || (sy >= sh) )
+
+
+#define MIN(a,b)        (((a) < (b)) ? (a) : (b))
+#define MAX(a,b)        (((a) > (b)) ? (a) : (b))
+
+
+/*
+ *                          NORMAL BLITTING
+ */
+void BlitBufNormal8(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,   
+        unsigned int src_copy_height,  
+        double zoom,
+        double vis,
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;     /* tar_width * BYTES_PER_PIXEL8 */
+        int src_width_bytes;     /* src_width * BYTES_PER_PIXEL8 */
+
+        int src_width_check;   /* src_x + src_copy_width */
+        int src_height_check;  /* src_y + src_copy_height */
+
+        u_int8_t *tar_buf_ptr;
+        u_int8_t *src_buf_ptr;
+        int sr, tr, sg, tg, sb, tb;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) || 
+           (src_width < 1) ||   
+           (src_height < 1) ||
+           (src_copy_width < 1) ||
+           (src_copy_height < 1) ||
+           (zoom <= 0) ||
+           (vis <= 0)
+        )
+            return;
+
+
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+
+
+        /* ************************************************************* */
+
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL8;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL8;
+
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom); 
+
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom);
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+
+        /* Set up starting numbers. */
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+
+
+        /* ********************************************************* */
+
+        if(vis >= 1.0)
+        {
+            while(src_y_row < src_height_check)    
+            {
+                /* Skip if target is off the screen. */
+                if((tar_x_col >= (int)tar_width) ||
+                   (tar_y_row >= (int)tar_height)
+                )
+                {
+                    /* Increment x colums. */
+                    src_x_col += (int)x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += (int)y_pixels_inc;
+
+                        tar_x_col = tar_x;  
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+
+                /* Get pointer in source buffer. */
+                src_buf_ptr = (u_int8_t *)(&src_buf[
+                    ((src_y_row >> 8) * src_width_bytes) +
+                    ((src_x_col >> 8) * BYTES_PER_PIXEL8)
+                ]);
+
+                /* Transparency check. */
+                if(*src_buf_ptr == 0x00)
+                {
+                    /* Increment x colums. */
+                    src_x_col += (int)x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += (int)y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+                /* Get pointer in target buffer. */
+                tar_buf_ptr = (u_int8_t *)(&tar_buf[
+                    (tar_y_row * tar_width_bytes) +
+                    (tar_x_col * BYTES_PER_PIXEL8)
+                ]);
+
+                /* Set set target buffer position value of source. */
+                *tar_buf_ptr = *src_buf_ptr;
+
+
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */   
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+
+                    tar_x_col = tar_x;   
+                    tar_y_row++;
+                }
+            }
+        }
+        else
+        {
+            /* Blit at decreased visibility. */
+            while(src_y_row < src_height_check)
+            {
+                /* Skip if target is off the screen. */
+                if((tar_x_col >= (int)tar_width) ||
+                   (tar_y_row >= (int)tar_height)
+                )   
+                {  
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+
+                /* Get pointer in source buffer. */
+                src_buf_ptr = (u_int8_t *)(&src_buf[
+                    ((src_y_row >> 8) * src_width_bytes) +
+                    ((src_x_col >> 8) * BYTES_PER_PIXEL8)
+                ]);
+
+                /* Transparency check. */
+                if(*src_buf_ptr == 0x00)
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }   
+
+                /* Get pointer in target buffer. */
+                tar_buf_ptr = (u_int8_t *)(&tar_buf[
+                    (tar_y_row * tar_width_bytes) +
+                    (tar_x_col * BYTES_PER_PIXEL8)
+                ]);
+
+		/* rrrg ggbb */
+                sr = ((*src_buf_ptr) & 0xE0);
+                tr = ((*tar_buf_ptr) & 0xE0);
+                sg = (((*src_buf_ptr) & 0x1C) << 3);
+                tg = (((*tar_buf_ptr) & 0x1C) << 3);
+                sb = (((*src_buf_ptr) & 0x03) << 6);
+                tb = (((*tar_buf_ptr) & 0x03) << 6);
+
+                /* Set pixel. */
+                *tar_buf_ptr = PACK8TO8( 
+                    (u_int8_t)((vis * (sr - tr)) + tr),
+                    (u_int8_t)((vis * (sg - tg)) + tg),
+                    (u_int8_t)((vis * (sb - tb)) + tb)
+                );
+
+
+                /* Increment x colums. */
+                src_x_col += x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += y_pixels_inc;
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+            }
+        }
+
+
+        return;
+}
+
+void BlitBufNormal15(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+	double zoom,
+	double vis,
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+	unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;     /* tar_width * BYTES_PER_PIXEL16 */
+        int src_width_bytes;     /* src_width * BYTES_PER_PIXEL16 */
+
+	int src_width_check;	/* src_x + src_copy_width */
+	int src_height_check;	/* src_y + src_copy_height */
+
+        u_int16_t *tar_buf_ptr;
+	u_int16_t *src_buf_ptr;
+	int sr, tr, sg, tg, sb, tb;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||
+           (src_copy_height < 1) ||
+           (zoom <= 0) ||
+           (vis <= 0)
+        )
+            return;
+
+
+	/* Sanitize zoom. */
+	if(zoom > 1)
+	    zoom = 1;
+
+	/* Sanitize magnification. */
+	if(magnification < BLIT_MAGNIFICATION_MIN)
+	    magnification = BLIT_MAGNIFICATION_MIN;
+	else if(magnification > BLIT_MAGNIFICATION_MAX)
+	    magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+
+
+        /* ************************************************************* */
+
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL15;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL15;
+
+	/* Convert source units to 256 (for zooming). */
+	src_x <<= 8;
+        src_y <<= 8;
+	src_copy_width <<= 8;
+	src_copy_height <<= 8;
+	src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);  
+        src_height_check = (int)(src_y + (int)src_copy_height);
+
+	/* Calculate source increments for zooming affect. */
+	x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+
+	/* Sanitize target values. */
+	if(tar_x < 0)
+	{
+	    src_x += (tar_x * -256 / magnification / zoom);
+	    tar_x = 0;
+	}
+        if(tar_y < 0)
+	{
+	    src_y += (tar_y * -256 / magnification / zoom);
+	    tar_y = 0;
+	}
+
+	if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+	if(src_height_check > (int)src_height)
+	    src_height_check = src_height;
+
+        /* Set up starting numbers. */
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+        
+
+	/* ********************************************************* */
+
+	if(vis >= 1.0)
+	{
+            /* Blit at full visibility. */
+            while(src_y_row < src_height_check)
+            {
+                /* Skip if target is off the screen. */
+                if((tar_x_col >= (int)tar_width) ||
+                   (tar_y_row >= (int)tar_height)
+	        )
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+
+	        /* Get pointer in source buffer. */
+	        src_buf_ptr = (u_int16_t *)(&src_buf[
+		    ((src_y_row >> 8) * src_width_bytes) +
+		    ((src_x_col >> 8) * BYTES_PER_PIXEL15)
+	        ]);
+
+	        /* Transparency check. */
+                if(*src_buf_ptr == 0x0000)
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+                /* Get pointer in target buffer. */
+                tar_buf_ptr = (u_int16_t *)(&tar_buf[
+                    (tar_y_row * tar_width_bytes) +  
+                    (tar_x_col * BYTES_PER_PIXEL15)
+                ]);
+
+	        /* Set set target buffer position value of source. */
+	        *tar_buf_ptr = *src_buf_ptr;
+
+
+                /* Increment x colums. */
+                src_x_col += x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += y_pixels_inc;
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+	    }
+        }
+	else
+	{
+	    /* Blit at decreased visibility. */
+            while(src_y_row < src_height_check)
+            {
+                /* Skip if target is off the screen. */
+                if((tar_x_col >= (int)tar_width) ||
+                   (tar_y_row >= (int)tar_height)
+                )
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+                 
+                        tar_x_col = tar_x;   
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+
+                /* Get pointer in source buffer. */
+                src_buf_ptr = (u_int16_t *)(&src_buf[
+                    ((src_y_row >> 8) * src_width_bytes) +
+                    ((src_x_col >> 8) * BYTES_PER_PIXEL15)
+                ]);
+
+                /* Transparency check. */
+                if(*src_buf_ptr == 0x0000)
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+                /* Get pointer in target buffer. */  
+                tar_buf_ptr = (u_int16_t *)(&tar_buf[
+                    (tar_y_row * tar_width_bytes) +
+                    (tar_x_col * BYTES_PER_PIXEL15)
+                ]);
+
+                sr = (((*src_buf_ptr) & 0x7C00) >> 7);
+                tr = (((*tar_buf_ptr) & 0x7C00) >> 7);
+                sg = (((*src_buf_ptr) & 0x03E0) >> 2);
+                tg = (((*tar_buf_ptr) & 0x03E0) >> 2);
+                sb = (((*src_buf_ptr) & 0x001F) << 3);
+                tb = (((*tar_buf_ptr) & 0x001F) << 3);
+
+		/* Set pixel. */
+		*tar_buf_ptr = PACK8TO15(
+		    (u_int8_t)((vis * (sr - tr)) + tr),
+                    (u_int8_t)((vis * (sg - tg)) + tg),
+                    (u_int8_t)((vis * (sb - tb)) + tb)
+ 		);
+
+
+                /* Increment x colums. */
+                src_x_col += x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {   
+                    src_x_col = src_x;   
+                    src_y_row += y_pixels_inc; 
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }    
+            }
+	}
+
+
+        return;
+}
+
+
+void BlitBufNormal16(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+	double zoom,
+	double vis,
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+	unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;     /* tar_width * BYTES_PER_PIXEL16 */
+        int src_width_bytes;     /* src_width * BYTES_PER_PIXEL16 */
+
+	int src_width_check;	/* src_x + src_copy_width */
+	int src_height_check;	/* src_y + src_copy_height */
+
+        u_int16_t *tar_buf_ptr;
+	u_int16_t *src_buf_ptr;
+	int sr, tr, sg, tg, sb, tb;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||
+           (src_copy_height < 1) ||
+           (zoom <= 0) ||
+           (vis <= 0)
+        )
+            return;
+
+
+	/* Sanitize zoom. */
+	if(zoom > 1)
+	    zoom = 1;
+
+	/* Sanitize magnification. */
+	if(magnification < BLIT_MAGNIFICATION_MIN)
+	    magnification = BLIT_MAGNIFICATION_MIN;
+	else if(magnification > BLIT_MAGNIFICATION_MAX)
+	    magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+
+
+        /* ************************************************************* */
+
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL16;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL16;
+
+	/* Convert source units to 256 (for zooming). */
+	src_x <<= 8;
+        src_y <<= 8;
+	src_copy_width <<= 8;
+	src_copy_height <<= 8;
+	src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);  
+        src_height_check = (int)(src_y + (int)src_copy_height);
+
+	/* Calculate source increments for zooming affect. */
+	x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+
+	/* Sanitize target values. */
+	if(tar_x < 0)
+	{
+	    src_x += (tar_x * -256 / magnification / zoom);
+	    tar_x = 0;
+	}
+        if(tar_y < 0)
+	{
+	    src_y += (tar_y * -256 / magnification / zoom);
+	    tar_y = 0;
+	}
+
+	if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+	if(src_height_check > (int)src_height)
+	    src_height_check = src_height;
+
+        /* Set up starting numbers. */
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+        
+
+	/* ********************************************************* */
+
+	if(vis >= 1.0)
+	{
+            /* Blit at full visibility. */
+            while(src_y_row < src_height_check)
+            {
+                /* Skip if target is off the screen. */
+                if((tar_x_col >= (int)tar_width) ||
+                   (tar_y_row >= (int)tar_height)
+	        )
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+
+	        /* Get pointer in source buffer. */
+	        src_buf_ptr = (u_int16_t *)(&src_buf[
+		    ((src_y_row >> 8) * src_width_bytes) +
+		    ((src_x_col >> 8) * BYTES_PER_PIXEL16)
+	        ]);
+
+	        /* Transparency check. */
+                if(*src_buf_ptr == 0x0000)
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+                /* Get pointer in target buffer. */
+                tar_buf_ptr = (u_int16_t *)(&tar_buf[
+                    (tar_y_row * tar_width_bytes) +  
+                    (tar_x_col * BYTES_PER_PIXEL16)  
+                ]);
+
+	        /* Set set target buffer position value of source. */
+	        *tar_buf_ptr = *src_buf_ptr;
+
+
+                /* Increment x colums. */
+                src_x_col += x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += y_pixels_inc;
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+	    }
+        }
+	else
+	{
+	    /* Blit at decreased visibility. */
+            while(src_y_row < src_height_check)
+            {
+                /* Skip if target is off the screen. */
+                if((tar_x_col >= (int)tar_width) ||
+                   (tar_y_row >= (int)tar_height)
+                )
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+                 
+                        tar_x_col = tar_x;   
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+
+                /* Get pointer in source buffer. */
+                src_buf_ptr = (u_int16_t *)(&src_buf[
+                    ((src_y_row >> 8) * src_width_bytes) +
+                    ((src_x_col >> 8) * BYTES_PER_PIXEL16)
+                ]);
+
+                /* Transparency check. */
+                if(*src_buf_ptr == 0x0000)
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+                /* Get pointer in target buffer. */  
+                tar_buf_ptr = (u_int16_t *)(&tar_buf[
+                    (tar_y_row * tar_width_bytes) +
+                    (tar_x_col * BYTES_PER_PIXEL16)
+                ]);
+
+		sr = (((*src_buf_ptr) & 0xF800) >> 8);
+		tr = (((*tar_buf_ptr) & 0xF800) >> 8);
+                sg = (((*src_buf_ptr) & 0x07E0) >> 3);
+                tg = (((*tar_buf_ptr) & 0x07E0) >> 3);
+                sb = (((*src_buf_ptr) & 0x001F) << 3);
+                tb = (((*tar_buf_ptr) & 0x001F) << 3);
+
+		/* Set pixel. */
+		*tar_buf_ptr = PACK8TO16(
+		    (u_int8_t)((vis * (sr - tr)) + tr),
+                    (u_int8_t)((vis * (sg - tg)) + tg),
+                    (u_int8_t)((vis * (sb - tb)) + tb)
+ 		);
+
+
+                /* Increment x colums. */
+                src_x_col += x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {   
+                    src_x_col = src_x;   
+                    src_y_row += y_pixels_inc; 
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }    
+            }
+	}
+
+
+        return;
+}
+
+
+
+void BlitBufNormal32(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,
+	double vis,
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+           
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+           
+        int tar_width_bytes;     /* tar_width * BYTES_PER_PIXEL32 */
+        int src_width_bytes;     /* src_width * BYTES_PER_PIXEL32 */
+           
+        int src_width_check;   /* src_x + src_copy_width */
+        int src_height_check;  /* src_y + src_copy_height */
+
+        u_int32_t *tar_buf_ptr;
+        u_int32_t *src_buf_ptr;
+        int sa, sr, tr, sg, tg, sb, tb;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||
+           (src_copy_height < 1) ||
+           (zoom <= 0) ||
+           (vis <= 0)
+        )
+            return;
+
+
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+
+        
+        /* ************************************************************* */
+        
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL32;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL32;
+           
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+        
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom);
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+        
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+        
+        /* Set up starting numbers. */
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+
+
+        /* ********************************************************* */
+
+        if(vis >= 1.0)
+        {
+            while(src_y_row < src_height_check)
+            {
+                /* Skip if target is off the screen. */
+                if((tar_x_col >= (int)tar_width) ||
+                   (tar_y_row >= (int)tar_height)
+                )
+                {
+                    /* Increment x colums. */
+                    src_x_col += (int)x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += (int)y_pixels_inc;
+
+                        tar_x_col = tar_x;  
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+
+                /* Get pointer in source buffer. */
+                src_buf_ptr = (u_int32_t *)(&src_buf[
+                    ((src_y_row >> 8) * src_width_bytes) +
+                    ((src_x_col >> 8) * BYTES_PER_PIXEL32)
+                ]);
+
+                /* Transparency check. */
+                if(*src_buf_ptr == 0x00000000)
+                {
+                    /* Increment x colums. */
+                    src_x_col += (int)x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += (int)y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+                /* Get pointer in target buffer. */
+                tar_buf_ptr = (u_int32_t *)(&tar_buf[
+                    (tar_y_row * tar_width_bytes) +
+                    (tar_x_col * BYTES_PER_PIXEL32)
+                ]);
+
+                /* Set set target buffer position value of source. */
+                *tar_buf_ptr = *src_buf_ptr;
+
+
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+
+                    tar_x_col = tar_x;   
+                    tar_y_row++;
+                }
+	    }
+        }
+        else
+        {
+            /* Blit at decreased visibility. */
+            while(src_y_row < src_height_check)
+            {
+                /* Skip if target is off the screen. */
+                if((tar_x_col >= (int)tar_width) ||
+                   (tar_y_row >= (int)tar_height)
+                )   
+                {  
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }
+
+
+                /* Get pointer in source buffer. */
+                src_buf_ptr = (u_int32_t *)(&src_buf[
+                    ((src_y_row >> 8) * src_width_bytes) +
+                    ((src_x_col >> 8) * BYTES_PER_PIXEL32)
+                ]);
+
+                /* Transparency check. */
+                if(*src_buf_ptr == 0x00000000)
+                {
+                    /* Increment x colums. */
+                    src_x_col += x_pixels_inc;
+                    tar_x_col++;
+
+                    /* Increment rows. */
+                    if(src_x_col >= src_width_check)
+                    {
+                        src_x_col = src_x;
+                        src_y_row += y_pixels_inc;
+
+                        tar_x_col = tar_x;
+                        tar_y_row++;
+                    }
+
+                    continue;
+                }   
+
+                /* Get pointer in target buffer. */
+                tar_buf_ptr = (u_int32_t *)(&tar_buf[
+                    (tar_y_row * tar_width_bytes) +
+                    (tar_x_col * BYTES_PER_PIXEL32)
+                ]);
+
+		sa = (((*src_buf_ptr) & 0xFF000000) >> 24);
+                sr = (((*src_buf_ptr) & 0x00FF0000) >> 16);
+                tr = (((*tar_buf_ptr) & 0x00FF0000) >> 16);
+                sg = (((*src_buf_ptr) & 0x0000FF00) >> 8);
+                tg = (((*tar_buf_ptr) & 0x0000FF00) >> 8);
+                sb = ((*src_buf_ptr) & 0x000000FF);
+                tb = ((*tar_buf_ptr) & 0x000000FF);
+
+                /* Set pixel. */
+                *tar_buf_ptr = PACK8TO32(
+		    (u_int8_t)sa,
+                    (u_int8_t)((vis * (sr - tr)) + tr),
+                    (u_int8_t)((vis * (sg - tg)) + tg),
+                    (u_int8_t)((vis * (sb - tb)) + tb)
+                );
+
+
+                /* Increment x colums. */
+                src_x_col += x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += y_pixels_inc;
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+            }
+        }
+
+
+        return;
+}
+
+
+
+void BlitBufNormal(
+        unsigned int d,
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,			/* 0.1 to 1.0 supported. */
+	double vis,
+	double magnification
+)
+{
+	switch(d)
+	{
+	  case 32:
+	    BlitBufNormal32(
+                tar_buf, src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, vis, magnification
+	    );
+	    break;
+
+          case 24:
+            BlitBufNormal32(
+                tar_buf, src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width, 
+                src_height,
+                src_copy_width, 
+                src_copy_height,
+                zoom, vis, magnification
+            );
+            break;
+
+          case 16:
+            BlitBufNormal16(
+                tar_buf, src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width, 
+                src_height,
+                src_copy_width, 
+                src_copy_height,
+                zoom, vis, magnification
+            );
+            break;
+
+          case 15:
+            BlitBufNormal15(
+                tar_buf, src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width, 
+                src_height,
+                src_copy_width, 
+                src_copy_height,
+                zoom, vis, magnification
+            );
+            break;
+
+          case 8:
+            BlitBufNormal8(
+                tar_buf, src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, vis, magnification
+            );
+            break;
+	}
+
+	return;
+}
+
+
+
+/*
+ *                         ABSOLUTE BLITTING
+ *
+ *   Same as normal blitting except that it does not check for
+ *   transparency.
+ */
+void BlitBufAbsolute8(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,   
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,			/* 0.1 to 1.0 supported. */
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;     /* tar_width * BYTES_PER_PIXEL8 */
+        int src_width_bytes;     /* src_width * BYTES_PER_PIXEL8 */
+
+        int src_width_check;   /* src_x + src_copy_width */
+        int src_height_check;  /* src_y + src_copy_height */
+
+        u_int8_t *tar_buf_ptr;
+        u_int8_t *src_buf_ptr;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||
+           (src_copy_height < 1) ||
+           (zoom <= 0)
+        )
+            return;
+
+
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+
+
+        /* ************************************************************* */
+
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL8;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL8;
+
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom);
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+
+        /* Set up starting numbers. */
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+
+
+        /* ********************************************************* */
+
+        /* Begin blitting src_buf to tar_buf. */
+        while(src_y_row < src_height_check)
+        {
+            /* Skip if off the screen. */
+            if((tar_x_col >= (int)tar_width) ||
+               (tar_y_row >= (int)tar_height)
+            )
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+ 
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+
+                continue;
+            }
+
+
+            /* Get pointer in source buffer. */
+            src_buf_ptr = (u_int8_t *)(&src_buf[
+                ((src_y_row >> 8) * src_width_bytes) +
+                ((src_x_col >> 8) * BYTES_PER_PIXEL8)
+            ]);
+
+            /* Get pointer in target buffer. */
+            tar_buf_ptr = (u_int8_t *)(&tar_buf[
+                (tar_y_row * tar_width_bytes) +
+                (tar_x_col * BYTES_PER_PIXEL8)
+            ]);
+            
+            /* Set set target buffer position value of source. */
+            *tar_buf_ptr = *src_buf_ptr;
+
+
+            /* Increment x colums. */
+            src_x_col += (int)x_pixels_inc;
+            tar_x_col++;
+
+            /* Increment rows. */
+            if(src_x_col >= src_width_check)
+            {
+                src_x_col = src_x;
+                src_y_row += (int)y_pixels_inc;
+
+                tar_x_col = tar_x;
+                tar_y_row++;
+            }
+        }
+
+
+        return;
+}
+
+
+void BlitBufAbsolute15(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,			/* 0.1 to 1.0 supported. */
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;     /* tar_width * BYTES_PER_PIXEL16 */
+        int src_width_bytes;     /* src_width * BYTES_PER_PIXEL16 */
+
+        int src_width_check;   /* src_x + src_copy_width */
+        int src_height_check;  /* src_y + src_copy_height */
+
+        u_int16_t *tar_buf_ptr;
+        u_int16_t *src_buf_ptr;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||   
+           (src_copy_height < 1) ||
+           (zoom <= 0)
+        )
+            return;
+ 
+ 
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+        
+        
+        /* ************************************************************* */
+        
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL16;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL16;
+           
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+        
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom);
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+        
+        /* Set up starting numbers. */
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+        
+ 
+        /* ********************************************************* */
+        
+        /* Begin blitting src_buf to tar_buf. */
+        while(src_y_row < src_height_check)
+        {
+            /* Skip if off the screen. */
+            if((tar_x_col >= (int)tar_width) ||
+               (tar_y_row >= (int)tar_height)
+            )
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+        
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+        
+                    tar_x_col = tar_x;  
+                    tar_y_row++;
+                }
+        
+                continue;
+            }
+
+
+            /* Get pointer in source buffer. */
+            src_buf_ptr = (u_int16_t *)(&src_buf[
+                ((src_y_row >> 8) * src_width_bytes) +
+                ((src_x_col >> 8) * BYTES_PER_PIXEL15)
+            ]);
+
+            /* Get pointer in target buffer. */
+            tar_buf_ptr = (u_int16_t *)(&tar_buf[
+                (tar_y_row * tar_width_bytes) +
+                (tar_x_col * BYTES_PER_PIXEL15)
+            ]);
+
+            /* Set set target buffer position value of source. */
+            *tar_buf_ptr = *src_buf_ptr;
+
+
+            /* Increment x colums. */
+            src_x_col += (int)x_pixels_inc;
+            tar_x_col++;
+
+            /* Increment rows. */
+            if(src_x_col >= src_width_check)
+            {
+                src_x_col = src_x;
+                src_y_row += (int)y_pixels_inc;
+             
+                tar_x_col = tar_x;   
+                tar_y_row++;
+            }
+        }
+
+
+        return;
+}
+
+
+void BlitBufAbsolute16(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,			/* 0.1 to 1.0 supported. */
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;     /* tar_width * BYTES_PER_PIXEL16 */
+        int src_width_bytes;     /* src_width * BYTES_PER_PIXEL16 */
+
+        int src_width_check;   /* src_x + src_copy_width */
+        int src_height_check;  /* src_y + src_copy_height */
+
+        u_int16_t *tar_buf_ptr;
+        u_int16_t *src_buf_ptr;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||   
+           (src_copy_height < 1) ||
+           (zoom <= 0)
+        )
+            return;
+ 
+ 
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+        
+        
+        /* ************************************************************* */
+        
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL16;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL16;
+           
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+        
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom);
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+        
+        /* Set up starting numbers. */
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+        
+ 
+        /* ********************************************************* */
+        
+        /* Begin blitting src_buf to tar_buf. */
+        while(src_y_row < src_height_check)
+        {
+            /* Skip if off the screen. */
+            if((tar_x_col >= (int)tar_width) ||
+               (tar_y_row >= (int)tar_height)
+            )
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+        
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+        
+                    tar_x_col = tar_x;  
+                    tar_y_row++;
+                }
+        
+                continue;
+            }
+
+
+            /* Get pointer in source buffer. */
+            src_buf_ptr = (u_int16_t *)(&src_buf[
+                ((src_y_row >> 8) * src_width_bytes) +
+                ((src_x_col >> 8) * BYTES_PER_PIXEL16)
+            ]);
+
+            /* Get pointer in target buffer. */
+            tar_buf_ptr = (u_int16_t *)(&tar_buf[
+                (tar_y_row * tar_width_bytes) +
+                (tar_x_col * BYTES_PER_PIXEL16)
+            ]);
+
+            /* Set set target buffer position value of source. */
+            *tar_buf_ptr = *src_buf_ptr;
+
+
+            /* Increment x colums. */
+            src_x_col += (int)x_pixels_inc;
+            tar_x_col++;
+
+            /* Increment rows. */
+            if(src_x_col >= src_width_check)
+            {
+                src_x_col = src_x;
+                src_y_row += (int)y_pixels_inc;
+             
+                tar_x_col = tar_x;   
+                tar_y_row++;
+            }
+        }
+
+
+        return;
+}
+
+
+
+void BlitBufAbsolute32(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,			/* 0.1 to 1.0 supported. */
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;     /* tar_width * BYTES_PER_PIXEL32 */
+        int src_width_bytes;     /* src_width * BYTES_PER_PIXEL32 */
+
+        int src_width_check;   /* src_x + src_copy_width */
+        int src_height_check;  /* src_y + src_copy_height */
+
+        u_int32_t *tar_buf_ptr;
+        u_int32_t *src_buf_ptr;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||   
+           (src_copy_height < 1) ||
+           (zoom <= 0)
+        )
+            return;
+
+
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+        
+        
+        /* ************************************************************* */
+        
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL32;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL32;
+           
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+        
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom);
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+        
+        /* Set up starting numbers. */
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+        
+ 
+        /* ********************************************************* */
+        
+        /* Begin blitting src_buf to tar_buf. */
+        while(src_y_row < src_height_check)
+        {
+            /* Skip if off the screen. */
+            if((tar_x_col >= (int)tar_width) ||
+               (tar_y_row >= (int)tar_height)
+            )
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+        
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+        
+                    tar_x_col = tar_x;  
+                    tar_y_row++;
+                }
+        
+                continue;
+            }
+
+
+            /* Get pointer in source buffer. */
+            src_buf_ptr = (u_int32_t *)(&src_buf[
+                ((src_y_row >> 8) * src_width_bytes) +
+                ((src_x_col >> 8) * BYTES_PER_PIXEL32)
+            ]);
+
+            /* Get pointer in target buffer. */
+            tar_buf_ptr = (u_int32_t *)(&tar_buf[
+                (tar_y_row * tar_width_bytes) +
+                (tar_x_col * BYTES_PER_PIXEL32)
+            ]);
+
+            /* Set set target buffer position value of source. */
+            *tar_buf_ptr = *src_buf_ptr;
+
+
+            /* Increment x colums. */
+            src_x_col += (int)x_pixels_inc;
+            tar_x_col++;
+
+            /* Increment rows. */
+            if(src_x_col >= src_width_check)
+            {
+                src_x_col = src_x;
+                src_y_row += (int)y_pixels_inc;
+             
+                tar_x_col = tar_x;   
+                tar_y_row++;
+            }
+        }
+
+
+        return;
+}
+
+
+
+void BlitBufAbsolute(
+        unsigned int d,
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,  
+        int src_y,  
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,			/* 0.1 to 1.0 supported. */
+	double magnification
+)
+{
+	switch(d)
+	{
+	  case 32:
+	    BlitBufAbsolute32(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, magnification
+	    );
+	    break;
+
+          case 24:
+            BlitBufAbsolute32(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, magnification
+            );
+            break;
+
+          case 16:
+            BlitBufAbsolute16(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, magnification
+            );
+            break;
+
+
+          case 15:
+            BlitBufAbsolute15(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, magnification
+            );
+            break;
+
+
+          case 8:
+            BlitBufAbsolute8(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, magnification
+ 	    );
+	    break;
+	}
+
+	return;
+}
+
+
+
+/*
+ *                                  Additive
+ */
+void BlitBufAdditive8(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+         
+        int tar_width_bytes;   /* tar_width * BYTES_PER_PIXEL8 */
+        int src_width_bytes;   /* src_width * BYTES_PER_PIXEL8 */
+ 
+        int src_width_check;   /* src_x + src_copy_width */
+        int src_height_check;  /* src_y + src_copy_height */
+            
+        u_int8_t *tar_buf_ptr;
+        u_int8_t *src_buf_ptr;
+ 
+        /* Needed for additive stuff. */
+/* YES these are 32 bits for 8 bit blitting! */
+        u_int32_t r, g, b;
+        u_int32_t c1, c2;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) || 
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||  
+           (src_height < 1) ||  
+           (src_copy_width < 1) ||  
+           (src_copy_height < 1) ||  
+           (zoom <= 0)
+        )
+            return;
+
+
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)  
+        )
+            return;
+
+
+        /* ************************************************************* */
+
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL8;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL8;
+
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom); 
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom); 
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+
+        /* Set up starting numbers. */
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+
+
+        /* ********************************************************* */
+
+        /* Begin blitting src_buf to tar_buf. */
+        while(src_y_row < src_height_check)
+        {
+            /* Skip if off the screen. */
+            if((tar_x_col >= (int)tar_width) ||
+               (tar_y_row >= (int)tar_height)
+            )
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+
+                continue;
+            }
+
+
+            /* Get pointer in source buffer. */
+            src_buf_ptr = (u_int8_t *)(&src_buf[
+                ((src_y_row >> 8) * src_width_bytes) +
+                ((src_x_col >> 8) * BYTES_PER_PIXEL8)
+            ]);
+
+	    /* Since x + 0 is always x, skip such pixel. */
+	    if(*src_buf_ptr == 0x00)
+	    {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc; 
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+                
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+
+		continue;
+	    }
+
+            /* Get pointer in target buffer. */
+            tar_buf_ptr = (u_int8_t *)(&tar_buf[
+                (tar_y_row * tar_width_bytes) +
+                (tar_x_col * BYTES_PER_PIXEL8)
+            ]);
+
+
+            /* Add target buffer position value to source. */
+            c1 = (u_int32_t)*tar_buf_ptr;
+            c2 = (u_int32_t)*src_buf_ptr;
+
+            r = (c1 & 0x000000E0) + (c2 & 0x000000E0);
+            g = (c1 & 0x0000001C) + (c2 & 0x0000001C);
+            b = (c1 & 0x00000003) + (c2 & 0x00000003);
+
+            *tar_buf_ptr = (u_int8_t)(
+                MIN(r, 0x000000E0) |
+                MIN(g, 0x0000001C) |
+                MIN(b, 0x00000003)
+            );
+
+
+            /* Increment x colums. */
+            src_x_col += (int)x_pixels_inc;
+            tar_x_col++;
+
+            /* Increment rows. */
+            if(src_x_col >= src_width_check)
+            {
+                src_x_col = src_x;
+                src_y_row += (int)y_pixels_inc;
+
+                tar_x_col = tar_x;
+                tar_y_row++;
+            }
+        }
+
+
+        return;
+}
+
+
+void BlitBufAdditive15(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;	/* tar_width * BYTES_PER_PIXEL15 */
+        int src_width_bytes;	/* src_width * BYTES_PER_PIXEL15 */
+
+        int src_width_check;	/* src_x + src_copy_width */
+        int src_height_check;	/* src_y + src_copy_height */
+
+        u_int16_t *tar_buf_ptr;
+        u_int16_t *src_buf_ptr;
+
+        /* Needed for additive stuff. */
+/* YES these are 32 bits for 15 bit blitting! */
+        u_int32_t r, g, b;
+
+        u_int32_t c1, c2;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||
+           (src_copy_height < 1) ||
+           (zoom <= 0)
+        )
+            return;
+
+
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+
+
+
+        /* ************************************************************* */
+
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL15;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL15;
+
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom);
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+
+        /* Set up starting numbers. */   
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+
+
+        /* ********************************************************* */
+
+        /* Begin blitting src_buf to tar_buf. */
+        while(src_y_row < src_height_check)
+        {
+            /* Skip if off the screen. */
+            if((tar_x_col >= (int)tar_width) ||
+               (tar_y_row >= (int)tar_height)
+            )
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+                
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+
+                continue;
+            }
+
+
+            /* Get pointer in source buffer. */
+            src_buf_ptr = (u_int16_t *)(&src_buf[
+                ((src_y_row >> 8) * src_width_bytes) +
+                ((src_x_col >> 8) * BYTES_PER_PIXEL15)
+            ]);
+
+            /* Since x + 0 is always x, skip such pixel. */
+            if(*src_buf_ptr == 0x0000)
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+                
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+
+                continue;
+            }
+
+            /* Get pointer in target buffer. */
+            tar_buf_ptr = (u_int16_t *)(&tar_buf[
+                (tar_y_row * tar_width_bytes) +  
+                (tar_x_col * BYTES_PER_PIXEL15)
+            ]);
+
+
+            /* Add target buffer position value to source. */
+            c1 = (u_int32_t)*tar_buf_ptr;
+            c2 = (u_int32_t)*src_buf_ptr;
+
+	    r = (c1 & 0x00007C00) + (c2 & 0x00007C00);
+            g = (c1 & 0x000003E0) + (c2 & 0x000003E0);
+            b = (c1 & 0x0000001F) + (c2 & 0x0000001F);
+
+            *tar_buf_ptr = (u_int16_t)(
+		MIN(r, 0x00007C00) |
+                MIN(g, 0x000003E0) |
+                MIN(b, 0x0000001F)
+	    );
+
+
+            /* Increment x colums. */
+            src_x_col += (int)x_pixels_inc;
+            tar_x_col++;
+
+            /* Increment rows. */
+            if(src_x_col >= src_width_check)
+            {   
+                src_x_col = src_x;
+                src_y_row += (int)y_pixels_inc;
+
+                tar_x_col = tar_x;
+                tar_y_row++;
+            }
+        }
+
+
+        return;
+}
+
+
+void BlitBufAdditive16(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;	/* tar_width * BYTES_PER_PIXEL16 */
+        int src_width_bytes;	/* src_width * BYTES_PER_PIXEL16 */
+
+        int src_width_check;	/* src_x + src_copy_width */
+        int src_height_check;	/* src_y + src_copy_height */
+
+        u_int16_t *tar_buf_ptr;
+        u_int16_t *src_buf_ptr;
+
+        /* Needed for additive stuff. */
+/* YES these are 32 bits for 16 bit blitting! */
+        u_int32_t r, g, b;
+
+        u_int32_t c1, c2;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||
+           (src_copy_height < 1) ||
+           (zoom <= 0)
+        )
+            return;
+
+
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+
+
+
+        /* ************************************************************* */
+
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL16;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL16;
+
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+            
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom);
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+
+        /* Set up starting numbers. */   
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+
+
+        /* ********************************************************* */
+
+        /* Begin blitting src_buf to tar_buf. */
+        while(src_y_row < src_height_check)
+        {
+            /* Skip if off the screen. */
+            if((tar_x_col >= (int)tar_width) ||
+               (tar_y_row >= (int)tar_height)
+            )
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+                
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+
+                continue;
+            }
+
+
+            /* Get pointer in source buffer. */
+            src_buf_ptr = (u_int16_t *)(&src_buf[
+                ((src_y_row >> 8) * src_width_bytes) +
+                ((src_x_col >> 8) * BYTES_PER_PIXEL16)
+            ]);
+
+            /* Since x + 0 is always x, skip such pixel. */
+            if(*src_buf_ptr == 0x0000)
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+
+                continue;
+            }
+
+            /* Get pointer in target buffer. */
+            tar_buf_ptr = (u_int16_t *)(&tar_buf[
+                (tar_y_row * tar_width_bytes) +  
+                (tar_x_col * BYTES_PER_PIXEL16)  
+            ]);
+
+
+            /* Add target buffer position value to source. */
+            c1 = (u_int32_t)*tar_buf_ptr;
+            c2 = (u_int32_t)*src_buf_ptr;
+
+            r = (c1 & 0x0000F800) + (c2 & 0x0000F800);
+            g = (c1 & 0x000007E0) + (c2 & 0x000007E0);
+            b = (c1 & 0x0000001F) + (c2 & 0x0000001F);
+
+            *tar_buf_ptr = (u_int16_t)(
+		MIN(r, 0x0000F800) |
+                MIN(g, 0x000007E0) |
+                MIN(b, 0x0000001F)
+	    );
+
+
+            /* Increment x colums. */
+            src_x_col += (int)x_pixels_inc;
+            tar_x_col++;
+
+            /* Increment rows. */
+            if(src_x_col >= src_width_check)
+            {   
+                src_x_col = src_x;
+                src_y_row += (int)y_pixels_inc;
+
+                tar_x_col = tar_x;
+                tar_y_row++;
+            }
+        }
+
+
+        return;
+}
+
+
+
+void BlitBufAdditive32(
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+	double zoom,
+	double magnification
+)
+{
+        int tar_x_col, tar_y_row;
+        int src_x_col, src_y_row;
+
+        unsigned int x_pixels_inc, y_pixels_inc;    /* For zooming. */
+
+        int tar_width_bytes;	/* tar_width * BYTES_PER_PIXEL32 */
+        int src_width_bytes;	/* src_width * BYTES_PER_PIXEL32 */
+
+        int src_width_check;	/* src_x + src_copy_width */
+        int src_height_check;	/* src_y + src_copy_height */
+
+        u_int32_t *tar_buf_ptr;
+        u_int32_t *src_buf_ptr;
+
+	/* Needed for additive stuff. */
+	u_int32_t r, g, b;
+	u_int32_t c1, c2;
+
+
+        /* Error checks. */
+        if((tar_buf == NULL) ||
+           (src_buf == NULL) ||
+           (tar_width < 1) ||
+           (tar_height < 1) ||
+           (src_width < 1) ||
+           (src_height < 1) ||
+           (src_copy_width < 1) ||
+           (src_copy_height < 1) ||
+	   (zoom <= 0)
+        )
+            return;
+
+
+        /* Sanitize zoom. */
+        if(zoom > 1)
+            zoom = 1;
+
+        /* Sanitize magnification. */
+        if(magnification < BLIT_MAGNIFICATION_MIN)
+            magnification = BLIT_MAGNIFICATION_MIN;
+        else if(magnification > BLIT_MAGNIFICATION_MAX)
+            magnification = BLIT_MAGNIFICATION_MAX;
+
+        /* Source totally not visable on target? */
+        if(((tar_x + (int)((int)src_copy_width *
+		magnification * zoom)) < 0) ||
+           ((tar_y + (int)((int)src_copy_height *
+		magnification * zoom)) < 0) ||
+           (tar_x >= (int)tar_width) ||
+           (tar_y >= (int)tar_height) ||
+           ((src_x + (int)src_copy_width) < 0) ||
+           ((src_y + (int)src_copy_height) < 0) ||
+           (src_x >= (int)src_width) ||
+           (src_y >= (int)src_height)
+        )
+            return;
+
+
+        /* ************************************************************* */
+
+        /* Precalculate byte sizes (before converting). */
+        tar_width_bytes = (int)tar_width * BYTES_PER_PIXEL32;
+        src_width_bytes = (int)src_width * BYTES_PER_PIXEL32;
+
+        /* Convert source units to 256 (for zooming). */
+        src_x <<= 8;
+        src_y <<= 8;
+        src_copy_width <<= 8;
+        src_copy_height <<= 8;
+        src_width <<= 8;
+        src_height <<= 8;
+
+        /* Precalculate source checks. */
+        src_width_check = (int)(src_x + (int)src_copy_width);
+        src_height_check = (int)(src_y + (int)src_copy_height);
+
+        /* Calculate source increments for zooming affect. */
+        x_pixels_inc = (unsigned int)(256 / magnification / zoom);
+        y_pixels_inc = (unsigned int)(256 / magnification / zoom);
+            
+        /* Sanitize target values. */
+        if(tar_x < 0)
+        {
+            src_x += (tar_x * -256 / magnification / zoom);
+            tar_x = 0;
+        }
+        if(tar_y < 0)
+        {
+            src_y += (tar_y * -256 / magnification / zoom);
+            tar_y = 0;
+        }
+
+        if(src_x < 0)
+	    src_x = 0;
+        if(src_y < 0)
+	    src_y = 0;
+
+        if(src_width_check > (int)src_width)
+            src_width_check = src_width;
+        if(src_height_check > (int)src_height)
+            src_height_check = src_height;
+
+        /* Set up starting numbers. */   
+        tar_x_col = tar_x;
+        tar_y_row = tar_y;
+        src_x_col = src_x;
+        src_y_row = src_y;
+
+
+        /* ********************************************************* */
+
+        /* Begin blitting src_buf to tar_buf. */
+        while(src_y_row < src_height_check)
+        {
+            /* Skip if off the screen. */
+            if((tar_x_col >= (int)tar_width) ||
+               (tar_y_row >= (int)tar_height) ||
+               (src_x_col >= (int)src_width) ||
+               (src_y_row >= (int)src_height)
+            )
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+
+                continue;
+            }
+
+
+            /* Get pointer in source buffer. */
+            src_buf_ptr = (u_int32_t *)(&src_buf[
+                ((src_y_row >> 8) * src_width_bytes) +
+                ((src_x_col >> 8) * BYTES_PER_PIXEL32)
+            ]);
+
+            /* Since x + 0 is always x, skip such pixel. */
+            if(*src_buf_ptr == 0x00000000)
+            {
+                /* Increment x colums. */
+                src_x_col += (int)x_pixels_inc;
+                tar_x_col++;
+
+                /* Increment rows. */
+                if(src_x_col >= src_width_check)
+                {
+                    src_x_col = src_x;
+                    src_y_row += (int)y_pixels_inc;
+
+                    tar_x_col = tar_x;
+                    tar_y_row++;
+                }
+
+                continue;
+            }
+
+            /* Get pointer in target buffer. */
+            tar_buf_ptr = (u_int32_t *)(&tar_buf[
+                (tar_y_row * tar_width_bytes) +
+                (tar_x_col * BYTES_PER_PIXEL32)
+            ]);
+
+
+            /* Add target buffer position value to source. */
+	    c1 = (u_int32_t)*tar_buf_ptr;
+            c2 = (u_int32_t)*src_buf_ptr;
+
+            r = (c1 & 0x00FF0000) + (c2 & 0x00FF0000);
+            g = (c1 & 0x0000FF00) + (c2 & 0x0000FF00);
+            b = (c1 & 0x000000FF) + (c2 & 0x000000FF);
+
+            *tar_buf_ptr = (u_int32_t)(
+		MIN(r, 0x00FF0000) |
+		MIN(g, 0x0000FF00) |
+                MIN(b, 0x000000FF)
+	    );
+
+
+            /* Increment x colums. */
+            src_x_col += (int)x_pixels_inc;
+            tar_x_col++;
+
+            /* Increment rows. */
+            if(src_x_col >= src_width_check)
+            {   
+                src_x_col = src_x;
+                src_y_row += (int)y_pixels_inc;
+
+                tar_x_col = tar_x;
+                tar_y_row++;
+            }
+        }
+
+
+        return;
+}
+
+
+
+void BlitBufAdditive(
+        unsigned int d,
+        u_int8_t *tar_buf,
+        u_int8_t *src_buf,
+        int tar_x,
+        int tar_y,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        int src_x,
+        int src_y,
+        unsigned int src_width,
+        unsigned int src_height,
+        unsigned int src_copy_width,
+        unsigned int src_copy_height,
+        double zoom,			/* 0.1 to 1.0 supported. */
+	double magnification
+)
+{
+	switch(d)
+	{
+	  case 32:
+	    BlitBufAdditive32(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,   
+                zoom, magnification
+	    );
+	    break;
+
+          case 24:
+            BlitBufAdditive32(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, magnification
+            );
+            break;
+
+          case 16:
+            BlitBufAdditive16(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, magnification
+            );
+            break;
+
+          case 15:
+            BlitBufAdditive15(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width,
+                src_copy_height,
+                zoom, magnification
+            );
+            break;
+
+          case 8:
+            BlitBufAdditive8(
+                tar_buf,
+                src_buf,
+                tar_x,
+                tar_y,
+                tar_width,
+                tar_height,
+                src_x,
+                src_y,
+                src_width,
+                src_height,
+                src_copy_width, 
+                src_copy_height, 
+                zoom, magnification
+            );
+            break;
+	}
+
+	return;
+}
+
+
+/*
+ *	Simple solid buffer blitting
+ */
+void BlitBufSolid8(
+        u_int8_t *tar_buf,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        WColorStruct color
+)
+{
+        u_int8_t v, *ptr, *end;
+
+
+        if((tar_buf == NULL) ||
+           (tar_width == 0) ||
+           (tar_height == 0)
+        )
+            return;
+
+
+        /* Set value. */
+        v = (u_int8_t)PACK8TO8(color.r, color.g, color.b);
+
+        /* Begin setting buffer. */
+        for(ptr = (u_int8_t *)tar_buf,
+            end = ptr + (tar_width * tar_height);
+            ptr < end;
+            *ptr++ = v
+        );
+
+
+	return;
+}
+
+void BlitBufSolid15(
+        u_int8_t *tar_buf,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        WColorStruct color
+)
+{
+	u_int16_t v, *ptr, *end;
+
+
+        if((tar_buf == NULL) ||
+           (tar_width == 0) ||
+           (tar_height == 0)
+        )
+            return;
+
+
+        /* Set value. */ 
+        v = (u_int16_t)PACK8TO15(color.r, color.g, color.b);
+
+        /* Begin setting buffer. */
+        for(ptr = (u_int16_t *)tar_buf,
+            end = ptr + (tar_width * tar_height);
+            ptr < end;
+            *ptr++ = v
+	);
+
+
+        return;
+}
+
+void BlitBufSolid16(
+        u_int8_t *tar_buf,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        WColorStruct color
+)
+{
+	u_int16_t v, *ptr, *end;
+
+
+        if((tar_buf == NULL) ||
+           (tar_width == 0) ||
+           (tar_height == 0)
+        )
+            return;
+
+
+        /* Set value. */ 
+        v = (u_int16_t)PACK8TO16(color.r, color.g, color.b);
+
+        /* Begin setting buffer. */
+        for(ptr = (u_int16_t *)tar_buf,
+            end = ptr + (tar_width * tar_height);
+            ptr < end;
+            *ptr++ = v
+	);
+
+
+        return;
+}
+
+
+void BlitBufSolid32(
+        u_int8_t *tar_buf,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        WColorStruct color
+)
+{
+        u_int32_t v, *ptr, *end;
+
+        
+        if((tar_buf == NULL) ||
+           (tar_width == 0) || 
+           (tar_height == 0)   
+        )
+            return;
+            
+            
+        /* Set value. */
+        v = (u_int32_t)PACK8TO32(color.a, color.r, color.g, color.b);
+        
+        /* Begin setting buffer. */
+        for(ptr = (u_int32_t *)tar_buf,
+            end = ptr + (tar_width * tar_height);                     
+            ptr < end;
+            *ptr++ = v
+        );
+
+
+	return;
+}
+
+
+
+void BlitBufSolid(
+        unsigned int d,
+        u_int8_t *tar_buf,
+        unsigned int tar_width,
+        unsigned int tar_height,
+        WColorStruct color
+)
+{
+	switch(d)
+	{
+	  case 32:
+	    BlitBufSolid32(
+                tar_buf,
+                tar_width,
+                tar_height,
+                color
+	    );
+	    break;
+
+          case 24:
+            BlitBufSolid32(
+                tar_buf,
+                tar_width,
+                tar_height,
+                color
+            );
+            break;
+
+          case 16:
+            BlitBufSolid16(
+                tar_buf,
+                tar_width,
+                tar_height,
+                color
+            );
+            break;
+
+          case 15:
+            BlitBufSolid15(
+                tar_buf,
+                tar_width,
+                tar_height,
+                color
+            );
+            break;
+
+          case 8:
+            BlitBufSolid8(
+                tar_buf,
+                tar_width,
+                tar_height,
+                color
+            );
+            break;
+	}
+
+	return;
+}

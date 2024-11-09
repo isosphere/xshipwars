@@ -1,0 +1,61 @@
+                           X  S H I P W A R S
+
+                         V E R S I O N   1.34.0
+
+
+               http://wolfpack.twu.net/ShipWars/XShipWars
+
+              Copyright (C) 1999-2001 WolfPack Entertainment
+                       http://wolfpack.twu.net/
+
+
+         (Read INSTALL for compiling and installation instructions.)
+
+-------------
+RELEASE NOTES
+
+	Added configure scripts for each program.
+
+	Post C++ code base conversion fixes (lots).
+
+	Improved column list widget handling.
+
+	Improved Economy window display rate.
+
+	Universe monitor now installed in /usr/games/ instead of
+	/home/swserv/bin/
+
+                                  ---
+
+	Thanks to everyone contributing to the project! See the file
+	CREDITS for details.
+
+------------
+INSTALLATION
+
+	Read INSTALL for compiling and installation instructions.
+
+
+--------
+CONTACTS
+
+	See http://wolfpack.twu.net/contacts.html for a list of
+	developer's addresses.
+
+
+---------
+INVENTORY
+
+	xsw-#.#.#
+	|
+	+- client	XShipWars client.
+	+- global	Global source files.
+	+- include	Global include files.
+	+- monitor	ShipWars server monitor.
+	+- server	SWServ server.
+	+- unvedit	Universe editor.
+	+- widgetdemo	Widget test/demo program.
+	+- widgets	Widget source files.
+
+                                                                 ---------
+                                                                 XSHIPWARS

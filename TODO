@@ -1,0 +1,12 @@
+Client:
+
+	Find a better way for omni directional thrust
+	controlling when the throttle mode is set to incremental.
+
+
+Server:
+
+	Improve AI code for `follow'.
+
+
+Universe Editor:

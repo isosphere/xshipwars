@@ -1,0 +1,117 @@
+#include <X11/xpm.h>
+#include <assert.h>
+#include <ctype.h>
+#include <db.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <fnmatch.h>
+#include <limits.h>
+#include <malloc.h>
+#include <math.h>
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/resource.h>
+#include <sys/stat.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <time.h>
+#include <unistd.h>
+
+#include "../include/MwmUtil.h"
+#include "../include/cfgfmt.h"
+#include "../include/cs.h"
+#include "../include/cursors/dragfile_cur.xpm"
+#include "../include/cursors/dragitem_cur.xpm"
+#include "../include/cursors/h_split.xpm"
+#include "../include/cursors/no_way.xpm"
+#include "../include/cursors/std_arrow.xpm"
+#include "../include/cursors/text_cur.xpm"
+#include "../include/cursors/translate.xpm"
+#include "../include/cursors/v_split.xpm"
+#include "../include/cursors/xsw_scanner_lock.xpm"
+#include "../include/cursors/zoom.xpm"
+#include "../include/disk.h"
+#include "../include/eco.h"
+#include "../include/fio.h"
+#include "../include/graphics.h"
+#include "../include/icons/browsefiles.h"
+#include "../include/icons/default.h"
+#include "../include/icons/dir0.h"
+#include "../include/icons/dir1.h"
+#include "../include/icons/error.h"
+#include "../include/icons/exec0.h"
+#include "../include/icons/exec1.h"
+#include "../include/icons/file0.h"
+#include "../include/icons/file1.h"
+#include "../include/icons/goto_parent.h"
+#include "../include/icons/info.h"
+#include "../include/icons/link0.h"
+#include "../include/icons/link1.h"
+#include "../include/icons/mount.h"
+#include "../include/icons/pipe0.h"
+#include "../include/icons/pipe1.h"
+#include "../include/icons/pulist_map.h"
+#include "../include/icons/question.h"
+#include "../include/icons/unmount.h"
+#include "../include/icons/warning.h"
+#include "../include/images/btn_armed.h"
+#include "../include/images/btn_highlighted.h"
+#include "../include/images/btn_unarmed.h"
+#include "../include/images/menubkg.h"
+#include "../include/images/scalebar_h.h"
+#include "../include/images/scalebar_v.h"
+#include "../include/images/stdbkg.h"
+#include "../include/images/tab0.h"
+#include "../include/images/tab1.h"
+#include "../include/images/toggle_btn0.h"
+#include "../include/images/toggle_btn1.h"
+#include "../include/isrefs.h"
+#include "../include/mf.h"
+#include "../include/objects.h"
+#include "../include/os.h"
+#include "../include/osw-x.h"
+#include "../include/printerw.h"
+#include "../include/prochandle.h"
+#include "../include/reality.h"
+#include "../include/strexp.h"
+#include "../include/string.h"
+#include "../include/tga.h"
+#include "../include/unvfile.h"
+#include "../include/unvmain.h"
+#include "../include/unvmatch.h"
+#include "../include/unvmath.h"
+#include "../include/unvutil.h"
+#include "../include/widget.h"
+
+#include "aboutwin.h"
+#include "blitting.h"
+#include "comfwin.h"
+#include "config.h"
+#include "ecow.h"
+#include "keymap.h"
+#include "optwgen.h"
+#include "printwin.h"
+#include "rcfile.h"
+#include "ue.h"
+#include "uew.h"
+#include "uewprops.h"
+#include "uhw.h"
+#include "wepw.h"
+
+/* NOTE: None of these are separated out.
+*/
+#  include <linux/dirent.h>   
+#  include <linux/fs.h>
+# include <dirent.h>
+# include <io.h>	/* Needed by _findfirst(), _findnext(), etc. */
+# include <linux/limits.h>
+# include <mntent.h>            /* For getmntent() */
+# include <sys/mount.h>
+# include <sys/time.h>
+# include <sys/time.h>
+# include <unistd.h>
+# include <unistd.h>
+

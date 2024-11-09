@@ -1,0 +1,50 @@
+# ########################################################################
+# Libraries:
+#
+
+INC     = -I/usr/include
+LIB     = -lm -lX11 -lXpm -lXext
+LIB_DIR = -L/usr/X11R6/lib
+
+
+# ########################################################################
+# Compiler Flags:
+#
+
+CFLAGS  = -D__USE_BSD -g -Wall -DUSE_XSHM -D__cplusplus -Dc_plusplus
+
+
+# ########################################################################
+# Program source and header files:
+#
+
+CPP = g++
+BIN = demo
+HDR =
+SRC = ctype.cpp demo.cpp disk.cpp fio.cpp osw-x.cpp strexp.cpp string.cpp tga.cpp tgadither.cpp \
+      timming.cpp \
+      wbutton.cpp wclist.cpp wdialog.cpp wfbrowser.cpp wfile.cpp wglobal.cpp \
+      whintwin.cpp wlist.cpp wmenu.cpp wmenubar.cpp wprogressbar.cpp wprompt.cpp \
+      wpstepper.cpp wpulist.cpp wreg.cpp wscalebar.cpp wscrollbar.cpp \
+      wtogglebtn.cpp wtogglearray.cpp wutils.cpp wviewer.cpp
+OBJ = $(SRC:.cpp=.o)
+.cpp.o:
+	$(CPP) -c $*.cpp $(INC) $(CFLAGS)
+
+
+# ########################################################################
+# Build rules:
+#
+
+$(BIN): $(OBJ)
+	$(CPP) $(OBJ) -o $(BIN) $(LIB) $(LIB_DIR)
+      
+all: $(BIN)
+
+
+# ########################################################################
+# Maintainance and misc rules:
+#
+        
+clean:  
+	rm -f a.out core *.o

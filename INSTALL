@@ -1,0 +1,186 @@
+                            X S H I P W A R S
+
+            I N S T A L L A T I O N   I N S T R U C T I O N S
+
+
+------------------------
+STEP 1: Configure Source
+------------------------
+
+	Each component in this package is independent of the other,
+	meaning that you do not need to install all of them for things
+	to work.
+
+	In the toplevel directory (same directory as this file) you will
+	find; a subdirectory, configure script, and Makefile for each of
+	the following programs:
+
+	client			XShipWars official client
+	monitor			ShipWars universe monitor
+	server			SWServ, official ShipWars universe server
+	unvedit			ShipWars universe editor
+
+	For example the XShipWars official client would have:
+
+	client/			The subdirectory
+	configure.client	The configure script
+	Makefile.client		The Makefile
+
+
+	To configure the source for your system, type:
+
+	# ./configure.<program> --listall
+
+	Replace <program> with the program's name listed above, this will
+	run the compiler test and print all available platforms.
+	For additional help, type:
+
+	# ./configure.<program> --help
+
+	To configure the source for a platform, run the configure script 
+	with the platform name as the first argument and add any
+	additional arguments that you need after it. For example:
+
+	# ./configure.client Linux --prefix=/usr -v --enable="arch-i586"
+
+	Would configure for the platform `Linux' and specify the 
+	installation directory prefix to be /usr. The -v means be verbose
+	while configuring the source and --enable="arch-i586" enables
+	the feature who's name is arch-i586.
+
+
+	Note about installation directory prefixes:
+
+	For the client, monitor, and unvedit the prefix specifies the
+	prefix for the global data files. Default value is /usr/, which
+	will be expanded to /usr/share/games/xshipwars/* and /usr/games/*.
+
+	For the server the prefix specifies the prefix for the program's
+	native directory. Default value is /home/, which will be expanded
+	to /home/swserv/*.
+
+
+------------------------
+STEP 2: Building Program
+------------------------
+
+        If there were no problems configuring the source for your
+	platform, then just type:
+
+	# make -f Makefile.<program> all
+
+	Where <program> is the name of the program you just configured,
+	for example:
+
+	# make -f Makefile.client all
+
+        This will start the compiling process for the XShipWars client.
+
+
+        If you encountered errors, then you should report them to the
+        authors. Read the AUTHORS file for a list of addresses.
+
+
+--------------------
+STEP 3: INSTALLATION
+--------------------
+
+	To install, `su' to root as needed and type:
+
+	# make -f Makefile.<program> install
+
+	Where <program> is the name of the program you just configured,
+	for example:
+
+	# make -f Makefile.client install
+
+	To install the XShipWars client.
+
+
+	Notes on installing the XShipWars client:
+
+	After you run `make -f Makefile.client install' to install the
+	client, you need to make sure that you also have the following
+	packages (distributed separatly at the same place where you got
+	this package):
+
+	* Client data files (older versions will work).
+	* Atleast one graphics theme.
+
+
+	Notes on installing the SWServ server:
+
+	SWServ comes fully installed with all the files needed to get
+	started on creating your own universe. It comes with the default
+	`generic universe', however you should be familiar with playing on
+	a ShipWars universe first before you try to create one.
+
+	For information on setting up SWServ:
+
+	* http://wolfpack.twu.net/ShipWars/XShipWars/swserv_howto.html
+
+	For information on building universes:
+
+	* http://wolfpack.twu.net/ShipWars/XShipWars/building_manual.html
+
+
+--------------------
+STEP 4: FIRST FLIGHT
+--------------------
+
+	If you are new to ShipWars, then follow the instructions in this
+	section carefully.
+
+	After installing the XShipWars client and all its related 
+	packages, you should get a copy of the installed global
+	XShipWars client configuration file and copy it to your home
+	directory:
+
+	# cd /usr/share/games/xshipwars/etc/
+	# cp xshipwarsrc ~/.shipwars/xshipwarsrc
+        # cp universes ~/.shipwars/universes
+
+	You may manually edit ~/.shipwars/xshipwarsrc (the XShipWars
+	client configuration file), but do not modify any values that
+	you are unsure of. Most options for the XShipWars client can be
+	configured at run time.
+
+
+	Now run the XShipWars client, type:
+
+	# xsw &
+
+	Or to specify an alternate configuration file from the command
+	line, type:
+
+	# xsw -f ~/.shipwars/xshipwarsrc.someoneelse &
+
+
+	If the universes list does not show up when the XShipWars client
+	window appears, then just right-click on the main `view screen'
+	and go to Connect...
+
+	Select a universe to connect to (skip the local ones if you do
+	not have a local universe set up). Most of the preset universes
+	allow Guest log in.
+
+	If you need to configure some options or set up your keyboard
+	mapping, go to right-click->Options...->General->Keyboard Mapping.
+
+	Once connected you can enter a server command (default key is
+	'e' for server command) and type on the server command prompt:
+
+	# who
+
+	This will list all players on-line. To talk globally, press
+	'e' then, type:
+
+	# wall Hello world!
+
+
+	Don't hesitate to ask if you need additional help! You can contact
+	the authors via e-mail, please read the file AUTHORS for a list of
+	addresses.
+
+                                                                 ---------
+                                                                 XSHIPWARS

@@ -1,0 +1,25 @@
+                             Widget Set
+
+
+	The header file is ../include/widget.h
+
+	This widget set was created to ensure portability for XSW.
+	You may use this widget set in your programs however
+	it's compiled static only.  Also no external libary is
+	available for this widget set either.
+
+	There may be plans in the future if this widget set becomes
+	more popular and there is demand.
+
+
+	The demo program can be compiled by running 'make' in this
+	directory. The links to the other global sources are only
+	for compiling the demo program and are not used by the widget
+	set.
+
+	The script makelinks is to link all the widget source
+	files in your current dir to this one.  Review makelinks
+	before you run it!
+
+
+	--Wolfpack

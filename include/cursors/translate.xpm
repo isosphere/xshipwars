@@ -1,0 +1,22 @@
+/* XPM */
+static char * translate_xpm[] = {
+"16 16 3 1",
+" 	s None  c none",
+".	c #000000000000",
+"X	c #FFFFFFFFFFFF",
+"       ..       ",
+"      .XX.      ",
+"     .XXXX.     ",
+"    ...XX...    ",
+"   .  .XX.  .   ",
+"  ..  .XX.  ..  ",
+" .X....XX....X. ",
+".XXXXXXXXXXXXXX.",
+".XXXXXXXXXXXXXX.",
+" .X....XX....X. ",
+"  ..  .XX.  ..  ",
+"   .  .XX.  .   ",
+"    ...XX...    ",
+"     .XXXX.     ",
+"      .XX.      ",
+"       ..       "};

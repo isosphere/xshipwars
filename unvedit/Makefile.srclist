@@ -1,0 +1,15 @@
+HDR = aboutwin.h blitting.h comfwin.h config.h ecow.h keymap.h \
+      optwgen.h printwin.h rcfile.h ue.h uew.h uewprops.h uhw.h wepw.h
+
+SRC = aboutwin.cpp blitbeam.cpp blitcircle.cpp blitcursor.cpp blitfade.cpp \
+      blitline.cpp blitptlt.cpp blitstd.cpp blittile.cpp \
+      comfwin.cpp ctype.cpp disk.cpp ecow.cpp fio.cpp isrefs.cpp isrefsfile.cpp main.cpp \
+      mf.cpp optwgen.cpp osw-x.cpp printerw.cpp printwin.cpp prochandle.cpp rcfile.cpp \
+      strexp.cpp string.cpp tga.cpp tgadither.cpp timming.cpp uewalloc.cpp uewcb.cpp uewdde.cpp \
+      uewlist.cpp uewmacros.cpp uewmanage.cpp uewprops.cpp uewpropsio.cpp uewview.cpp \
+      uhw.cpp unitconv.cpp unvfile.cpp unvmain.cpp unvmatch.cpp unvmath.cpp unvutil.cpp \
+      wbutton.cpp wclist.cpp wdialog.cpp wepw.cpp wfbrowser.cpp wfile.cpp wglobal.cpp \
+      whintwin.cpp wlist.cpp wmenu.cpp wmenubar.cpp wprogressbar.cpp wprompt.cpp wpstepper.cpp \
+      wpulist.cpp wreg.cpp wscalebar.cpp wscrollbar.cpp wtogglearray.cpp wtogglebtn.cpp \
+      wutils.cpp wviewer.cpp
+

@@ -1,0 +1,22 @@
+#!/bin/bash
+ln -s ../widgets/wbutton.cpp
+ln -s ../widgets/wclist.cpp
+ln -s ../widgets/wdialog.cpp
+ln -s ../widgets/wfbrowser.cpp
+ln -s ../widgets/wfile.cpp
+ln -s ../widgets/wglobal.cpp
+ln -s ../widgets/whintwin.cpp
+ln -s ../widgets/wlist.cpp
+ln -s ../widgets/wmenu.cpp
+ln -s ../widgets/wmenubar.cpp
+ln -s ../widgets/wprogressbar.cpp
+ln -s ../widgets/wprompt.cpp
+ln -s ../widgets/wpstepper.cpp
+ln -s ../widgets/wpulist.cpp
+ln -s ../widgets/wreg.cpp
+ln -s ../widgets/wscalebar.cpp
+ln -s ../widgets/wscrollbar.cpp
+ln -s ../widgets/wtogglearray.cpp
+ln -s ../widgets/wtogglebtn.cpp
+ln -s ../widgets/wutils.cpp
+ln -s ../widgets/wviewer.cpp

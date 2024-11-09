@@ -1,0 +1,5 @@
+#!/bin/bash
+
+#   Quick test script to start server, do not install this.
+#
+./swserv default.conf

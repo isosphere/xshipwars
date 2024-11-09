@@ -1,0 +1,401 @@
+                  P L A T F O R M   C O N F I G U R A T O R
+
+                         FILE FORMAT SPECIFICATION
+
+
+ABOUT
+-----
+
+   This file describes the format of the Platform Configurator's
+(pconf) platform configuration file format (platforms.ini).
+
+LEGEND
+------
+
+Comments start with a '#' character. Any '#' character found within
+a value or parameter will be interprited as part of that value or
+parameter (not interprited as a comment).
+
+Parameters may be intended with initial tabs or spaces.
+
+Values always start after the '=' character which is always following
+a parameter, ie:
+
+	PREFIX = /usr/
+
+If a value runs long, then do not put " around it. Instead use backslashes
+to escape as " characters are read literally, example:
+
+	Description = The quick red foxes jumped over the "lazy" \
+brown dog.
+
+
+PARAMETERS: GLOBAL
+------------------
+
+These parameters should be specified before all else, they do not
+need to reside in any configuration blocks or appear in any particular
+order other than appearing before any block parameters.
+
+
+MakefileOutput specifies the output Makefile to generate, example:
+
+	MakefileOutput = Makefile.out
+
+
+MakefileInputPrepend specifies a text file who's contents will be
+literally prepended to the MakefileOutput, example:
+
+	MakefileInputPrepend = makefile_prepend.ini
+
+
+MakefileInputAppend specifies a text file who's contents will be
+literally appended to the MakefileOutput, example:
+
+	MakefileInputAppend = makefile_append.ini
+
+
+MessageConfigStartup specifies any arbitary string you want to show
+just before pconf starts scanning your system, example:
+
+	MessageConfigStartup = Checking your system...
+
+
+MessagePlatformUnsupported specifies any arbitary string you want to show
+when the specified platform is not defined in the platforms.ini file,
+example:
+
+	MessagePlatformUnsupported = Sorry, that platform is not supported, \
+please try a different or generic platform if available. Use --listall \
+to obtain a complete list of platforms.
+
+
+MessageDependFailed specifies any arbitary string you want to show
+when one or more dependencies of the selected platform is not met, 
+example:
+
+	MessageDependFailed = Your missing some dependencies, use --force \
+if you want to keep going next time.
+
+
+MessageSuccess specifies any arbitary string you want to show when
+pconf is done configuring and generating the MakefileOutput, example:
+
+	MessageSuccess = Type `make' to compile the program.
+
+
+
+PARAMETER: PLATFORMS
+--------------------
+
+Platform specifies the start of a `platform specification block',
+the value must be the name of the platform (preferably fetched from
+uname), example:
+
+	Platform = Linux
+	Platform = UNIX
+
+Once this value has been specified, subsequent platform related parameters
+affect this `platform specification block' untill another Platform is
+specified or end of file.
+
+
+Description specifies the description of this platform, it may contain
+some release notes or remarks that may not be readily apparent to the
+end user, example:
+
+	Description = UNIX is generic, pick a more specific platform if \
+available.
+
+
+PREFIX specifies the prepended directory for installing the program,
+for distributed UNIXes the value is /usr/local/ and plain UNIXes
+is /usr/. This value can be overridden from the command line using
+--prefix. Example:
+
+	PREFIX = /usr/
+
+
+CFLAGS specifies the standard compiler flags for the platform, do not
+include any compiler flags for particular features (see FeatureCFLAGS).
+Example:
+
+	CFLAGS = -DNON_STANDARD -DWIERD_STUFF
+
+
+INC_DIRS specifies additional include directories that the platform
+does not normally search for, do not include any include directories
+for particular features (see FeaturesINC_DIRS). Example:
+
+	INC_DIRS = -I/usr/nonstandard/include/
+
+
+LIBS specifies the standard libraries for the platform that the program
+needs to link to, do not include any libraries for particular features
+(see FeatureLIBS). Example:
+
+	LIBS = -lnonstandard -lm
+
+
+LIB_DIRS specifies the standard library paths for the platform that
+the libraries specified in the LIBS parameter need to look for, do not
+include any libraries for particular features (see FeatureLIB_DIRS).
+Example:
+
+	LIB_DIRS = -I/usr/nonstandard/lib/
+
+
+PlatformSearchPathInclude specifies an include path that is known to be
+on the platform (values must be absolute paths, may be specified multiple 
+times), example:
+
+	PlatformSearchPathInclude = /usr/include/
+	PlatformSearchPathInclude = /usr/nonstandard/include/
+
+
+PlatformSearchPathLib specifies a library path that is known to be  
+on the platform (values must be absolute paths, may be specified multiple
+times), example:
+
+	PlatformSearchPathLib = /lib/
+	PlatformSearchPathLib = /usr/lib/
+
+
+PlatformSearchPathEtc specifies a configuration files path that is
+known to be on the platform (values must be absolute paths, may be 
+specified multiple times), example:
+
+	PlatformSearchPathEtc = /etc/
+	PlatformSearchPathEtc = /usr/etc/
+
+
+PlatformSearchPathBin specifies a program files path that is known to be
+on the platform (values must be absolute paths, may be specified multiple
+times), example:
+
+	PlatformSearchPathBin = /bin/
+	PlatformSearchPathBin = /sbin/
+	PlatformSearchPathBin = /usr/bin/
+	PlatformSearchPathBin = /usr/sbin/
+	PlatformSearchPathBin = /usr/games/
+	PlatformSearchPathBin = /usr/X11R6/bin/
+
+
+PlatformSearchPathData specifies a data files path that is known to be
+on the platform (values must be absolute paths, may be specified multiple
+times), example:
+
+	PlatformSearchPathData = /usr/share/icons/
+	PlatformSearchPathData = /usr/nonstandard/themes/
+
+
+PARAMETER: FEATURE
+------------------
+
+PlatformFeature specifies the start of a `feature specification block',
+the value must be the name of the feature (any arbitary but user 
+recognizeable name can be used), example:
+
+        PlatformFeature = X Window Systems
+        PlatformFeature = Imlib
+	PlatformFeature = LibJSW
+
+This parameter must be specified after a Platform parameter. Once this
+value has been specified, subsequent feature related parameters affect
+this `feature specification block' untill another PlatformFeature
+is specified or end of file.
+
+Features can be enabled or disabled from the command line using
+--enable-<feature> or --disable-<feature> where <feature> is the name
+of a PlatformFeature specified value.
+
+
+Description specifies the description of this feature, it should contain
+a short sentence describing the propose of this feature and when to 
+use it. Example:
+
+        Description = For joystick support, only available on Linuxes
+
+URLHomePage specifies the url (ie used with web browsers and ftp clients)
+to specify the web page for this particular feature, example:
+
+	URLHomePage = http://wolfpack.twu.net/libjsw/
+
+
+URLDownload specifies the url of where to download required compoents 
+for this feature, example:
+
+	URLDownload = ftp://fox.mit.edu/pub/something.tar.bz2
+
+
+MustExist specifies the default critera for existance of this feature;
+if the value is Yes then this feature must be found on the system or
+else configuration fails, if the value is No then this feature is not
+searched for on the syste unless the user specificalled --enable'ed
+this feature from the command line, if the value is Preferred then this
+feature is searched for on the system and will be enabled if it is found
+or disabled if it is not found, examples:
+
+	MustExist = Yes
+	MustExist = Preferred
+	MustExist = No
+
+
+FeatureCFLAGS specifies a list of compiler flags to append to the CFLAGS
+parameter's value if this feature is found and enabled, example:
+
+	FeatureCFLAGS = -DHAVE_X
+
+
+FeatureINC_DIRS specifies a list of include directories to append to the
+INC_DIRS parameter's value if this feature is found and enabled, example:
+
+	FeatureINC_DIRS = -I/usr/nonstandard/include/
+
+
+FeatureLIBS specifies a list of libraries to append to the LIBS 
+parameter's value if this feature is found and enabled, example:
+
+	FeatureLIBS = -lX11 -lXext
+
+
+FeatureLIB_DIR specifies a list of librariy directories to append to the
+LIB_DIRS parameter's value if this feature is found and enabled, example:
+
+	FeatureLIB_DIR = -L/usr/X11R6/lib/
+
+
+
+PARAMETER: FEATURE DEPENDENCY
+-----------------------------
+
+FeatureDepend specifies the start of a `dependency specification block',
+the value must be the name of the dependency (preferably a conical
+package name), example:
+
+	FeatureDepend = X11-lib
+
+This parameter must be specified after a PlatformFeature parameter. Once 
+this value has been specified, subsequent dependency related parameters
+affect this `dependency specification block' untill another
+FeatureDepend is specified or end of file.
+
+
+DependType specifies the type of this dependency, valid values can be;
+Program, Library, Header, Config, or Data which will indicate the
+location of the dependency objects to be searched for in the
+paths (respectivly) PlatformSearchPathBin, PlatformSearchPathLib,
+PlatformSearchPathInclude, PlatformSearchPathEtc, 
+and PlatformSearchPathData. Example:
+
+	DependType = Library
+
+Which means this dependencie's files will be searched for in the paths
+defined by PlatformSearchPathLib parameters.
+
+
+MustExist specifies if this dependencie's objects must exist. This value
+should always be Yes.
+
+	MustExist = Yes
+
+
+DependPath specifies the name of the object (partial path allowed as 
+needed, but should never be absolute path). This value is searched for 
+depending on this dependency type (specified by DependType) in the
+appropriate PlatformSearchPath* parameters, example:
+
+	DependPath = libX11.so
+
+
+DependGrepString specifies the name of a string to search for in a matched
+dependent object (which means this parameter must be specified after each
+DependPath parameter!), example:
+
+	DependPath = libX11.so
+	DependGrepString = XOpenDisplay
+
+SAMPLES
+-------
+
+Example of Linux platform support, this is just one platform section
+specifying Linux specific details and one feature for X Window Systems
+(Note that this is not a compelte Linux platform support, you may need
+to add more paths and related details):
+
+MakefileOutput = Makefile.out
+Platform = Linux
+        Description = Penguins rule!
+        PREFIX = /usr/
+        CFLAGS =
+        LIBS = -lm
+        LIB_DIR =
+        PlatformSearchPathInclude = /usr/include/
+        PlatformSearchPathInclude = /usr/X11R6/include/
+        PlatformSearchPathLib = /lib/
+        PlatformSearchPathLib = /usr/lib/
+        PlatformSearchPathLib = /usr/X11R6/lib/
+        PlatformSearchPathEtc = /etc/
+        PlatformFeature = X Window Systems
+                MustExist = Preferred
+                FeatureLIBS = -lX11 -lXext
+                FeatureLIB_DIR = -L/usr/X11R6/lib/
+                FeatureDepend = X11-lib
+                        DependType = Library
+                        MustExist = Yes
+                        DependPath = libX11.so
+                        DependGrepString = XOpenDisplay
+                FeatureDepend = X11-devel
+                        DependType = Header
+                        MustExist = Yes
+                        DependPath = X11/Xlib.h
+                        DependGrepString = XNextEvent
+
+When pconf is runned with the platforms.ini (that contains the above data)
+and the platform name "linux" the above will be matched and pconf will
+begin checking for any features and its dependencies. Since feature `X 
+Window Systems' is set to Preferred, pconf will check if it exists and 
+then decide to enable it or not:
+
+	pconf platforms.ini linux 
+
+To specifically require that `X Window Systems' be enabled:
+
+	pconf platforms.ini linux --enable-"X Window Systems"
+
+And the same, with an override of the prefix:
+
+	pconf platforms.ini linux --prefix=/tmp/ --enable-"X Window Systems"
+
+List of all platforms in any platforms.ini can be obtained with any
+of the following (incrementing in detail):
+
+	pconf platforms.ini
+	pconf platforms.ini --list
+	pconf platforms.ini --listall
+
+
+The portion of the output Makefile (specified by MakefileOutput) generated
+by pconf will provide values for the parameters; PREFIX, CFLAGS, INC_DIRS,
+LIBS, LIB_DIRS, CC, and CPP.
+
+
+RFC
+---
+
+   Hopefully you have noticed by now that from the user end side this
+is pretty close to how AutoConf implments things with the option of 
+specifying a preset platform and platforms configuration file which both
+can be specified via script.
+
+Platform Configurator was created due to the lack of documentation and 
+problems our corperation has encountered with it. We understand that 
+AutoConf has worked for others but with the time and effort that we have 
+expended to adapt and use AutoConf has not been negateful over the option 
+of creating our own pconf system.
+
+If you find pconf useful, you are free to use it under the GNU public 
+license.
+
+Please send comments and questions to WPE, for list of contact addresses
+see http://wolfpack.twu.net/contacts.html

@@ -1,0 +1,35 @@
+                  P L A T F O R M   C O N F I G U R A T O R
+
+ABOUT
+-----
+
+   This is a very experimental Makefile generator, designed to generate
+a Makefile suitable for compiling a program based on information from
+a list of platforms and specifica values for each one.
+
+For those of you familiar with AutoConf, this basically works just like it
+with more or less features but nearly identical user-end syntax.
+
+
+   Platform Configurator was created by WolfPack Entertainment due to
+frustration from AutoConf and certain issues that just didn't tayor AutoConf
+for our needs.
+
+We understand and respect those who successfully use AutoConf, however we
+were not fortunate to get it working in the past two years and rather than
+expend more time on it we decided to `reinvent the wheel'. In which case to
+our delights the new design has worked out better than we anticipated.
+
+Note that Platform Configurator is fully documented, if you are a 
+developer and interested in further understanding then please read the 
+file FORMAT which describes the configuration file format that pconf uses.
+
+
+   Platform Configurator is not distributed in any means other than with
+WPE's software, however it is under GPL license. We grant you the right to 
+use pconf if you find it useful but you will have to rip it out of the 
+package it came from.
+
+We are happy to answer support questions that you may have, contact WPE if 
+you need assistance http://wolfpack.twu.net/contacts.html
+

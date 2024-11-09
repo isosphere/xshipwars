@@ -1,0 +1,674 @@
+#    ShipWars: Object Parameter Models
+#
+#	Object Parameter Models (abbriviated OPMs) are objects who
+#	have values that can be used as referance in `modeling' other
+#	objects, typically weapon and explosion objects.
+#
+#	The format of this file is nearly identical to the universe
+#	file format, except that some parameters of certain objects may
+#	be omitted.
+#
+#	Each object defined here is considered to be a referance (model)
+#	object. They are never actually placed in the universe with the
+#	other objects.
+#
+#	Certain objects specified in this file have standard names,
+#	meaning that they are expected to be defined in this file.
+#	Those objects will have `(standard name)' noted in the comment,
+#	please do not modify the name of that object. You can safly
+#	modify the values of that object if you know what you are
+#	doing.
+#
+
+# Default (standard name)
+#
+BeginXSWObject = 0
+    Name = Default
+    Password = *
+    Empire =
+    Type = 1
+    ImageSet = 0
+    Size = 20
+    LockedOn = -1
+    InterceptingObject = -1
+    ScannerRange = 80
+    SectX = 0
+    SectY = 0
+    SectZ = 0
+    CoordX = 0
+    CoordY = 0
+    CoordZ = 0
+    ObjectHeading = 0.0000
+    ObjectPitch = 0.0000
+    ObjectBank = 0.0000
+    VelocityHeading = 0
+    VelocityMax = 0.07
+    Velocity = 0
+    ThrustDir = 3.141593
+    ThrustPower = 0.0001
+    Thrust = 0
+    Throttle = 0
+    EngineState = 2
+    TurnRate = 0.0002
+    HitPointsMax = 5
+    HitPoints = 5
+    PowerPurity = 1.00
+    PowerMax = 5
+    Power = 5
+    CoreEfficency = 0.008
+    AntimatterMax = 5
+    Antimatter = 5
+    ShieldState = 0
+    ShieldFrequency = 180.50
+    SelectedWeapon = 0
+    TotalWeapons = 0
+    LifeSpan = -1
+    CloakState = -1
+    CloakStrength = 0.0
+    ShieldVisibility = 1.0
+    Visibility = 1.0
+    DamageControl = 0
+    PermissionUID = 5
+    PermissionGID = 5
+    AnimationLastInterval = 0
+    AnimationInterval = 0
+    AnimationCurrentFrame = 0
+    AnimationTotalFrames = 0
+    AnimationCycleCount = 0
+    AnimationCycleTimes = 0
+EndXSWObject
+
+
+#   New Player (standard name)
+#
+#	Whenever a new player object has been created, it will
+#	get these values upon creation.
+#
+BeginXSWObject = 5
+    Name = New Player
+    Password = *
+    Empire = IND
+    Type = 4
+    LocType = 0
+    ImageSet = 30
+    Size = 40
+    LockedOn = -1
+    InterceptingObject = -1
+    ScannerRange = 120.0000
+    SectX = 0
+    SectY = 0
+    SectZ = 0
+    CoordX = 0.0000
+    CoordY = 0.0000
+    CoordZ = 0.0000
+    ObjectHeading = 0.0000
+    ObjectPitch = 0.0000
+    ObjectBank = 0.0000
+    VelocityHeading = 0.0000
+    VelocityPitch = 0.0000
+    VelocityBank = 0.0000
+    VelocityMax = 0.0700
+    Velocity = 0.0000
+    ThrustDir = 3.1400
+    ThrustPower = 0.0004
+    Thrust = 0.0000
+    Throttle = 0.0000
+    EngineState = 2
+    TurnRate = 0.0003
+    Lighting = 0
+    HitPointsMax = 78.0000
+    HitPoints = 78.0000
+    PowerPurity = 0.9400
+    PowerMax = 68.0000
+    Power = 68.0000
+    CoreEfficency = 0.0200
+    AntimatterMax = 1000.0000
+    Antimatter = 1000.0000
+    ShieldState = 0
+    ShieldFrequency = 180.50
+    SelectedWeapon = -1
+    TotalWeapons = 0
+    BirthTime = 0
+    LifeSpan = -1
+    CreationOCS = 0
+    CloakState = -1
+    CloakStrength = 0.0
+    ShieldVisibility = 0.0
+    CurrentVisibility = 1.0
+    Visibility = 1.0
+    DamageControl = 0
+    ComChannel = 31000
+    AIFlags = 0
+    PermissionUID = 5
+    PermissionGID = 5
+    AnimationLastInterval = 0
+    AnimationInterval = 0
+    AnimationCurrentFrame = 0
+    AnimationTotalFrames = 0
+    AnimationCycleCount = 0
+    AnimationCycleTimes = 0
+EndXSWObject
+
+
+#   Explosions (standard names)
+#
+#	Standard values for explosions, please consult the client's
+#	ISRefs file (.isr file) for verification of these values
+#	(espessialy image set code number and animation values).
+#
+
+# Explosion 1: Small firy explosion.
+#
+BeginXSWObject = 20
+    Name = Explosion1
+    Type = 12
+    ImageSet = 20
+    Size = 100
+    VelocityMax = 0.05
+    BirthTime = 0
+    LifeSpan = -1
+    Visibility = 1.0
+    AnimationInterval = 300
+    AnimationCurrentFrame = 0
+    AnimationTotalFrames = 4
+    AnimationCycleCount = 0
+    AnimationCycleTimes = 1
+EndXSWObject
+
+# Explosion 2: Medium firy explosion.
+#
+BeginXSWObject = 21
+    Name = Explosion2
+    Type = 12
+    ImageSet = 21
+    Size = 100
+    VelocityMax = 0.05
+    BirthTime = 0
+    LifeSpan = -1
+    Visibility = 1.0
+    AnimationInterval = 300
+    AnimationCurrentFrame = 0
+    AnimationTotalFrames = 4
+    AnimationCycleCount = 0
+    AnimationCycleTimes = 1
+EndXSWObject
+
+# Explosion 3: Large firy explosion.
+#
+BeginXSWObject = 22
+    Name = Explosion3
+    Type = 12
+    ImageSet = 22
+    Size = 525
+    VelocityMax = 0.05
+    BirthTime = 0
+    LifeSpan = -1
+    Visibility = 1.0
+    AnimationInterval = 496
+    AnimationCurrentFrame = 0
+    AnimationTotalFrames = 6
+    AnimationCycleCount = 0
+    AnimationCycleTimes = 1
+EndXSWObject
+
+# Explosion 4: Large mass explosion.
+#
+BeginXSWObject = 23
+    Name = Explosion4
+    Type = 12
+    ImageSet = 23
+    Size = 525
+    VelocityMax = 0.05
+    BirthTime = 0   
+    LifeSpan = -1
+    Visibility = 1.0
+    AnimationInterval = 700
+    AnimationCurrentFrame = 0
+    AnimationTotalFrames = 6
+    AnimationCycleCount = 0
+    AnimationCycleTimes = 1
+EndXSWObject
+
+
+# ###########################################################################
+#
+#    Guest Vessel
+#
+#	Guest connections will recieve a vessel with these values, make
+#	sure that these values are those you want to give to someone you
+#	never met.
+#
+#	The name of this object may be changed as long as the server's
+#	sysparm (guest_login_name (or GuestLoginName from the
+#	ShipWars server configuration file) matches this name.
+#
+
+BeginXSWObject = 30
+    Name = Guest
+    Password = *
+    Empire = IND
+    Type = 4
+    LocType = 0
+    ImageSet = 33
+    Size = 60
+    LockedOn = -1
+    InterceptingObject = -1
+    ScannerRange = 120.0000
+    SectX = 0
+    SectY = 0
+    SectZ = 0
+    CoordX = 0.0000
+    CoordY = 0.0000
+    CoordZ = 0.0000
+    ObjectHeading = 0.0000
+    ObjectPitch = 0.0000
+    ObjectBank = 0.0000
+    VelocityHeading = 0.000
+    VelocityPitch = 0.0000
+    VelocityBank = 0.0000
+    VelocityMax = 0.0700
+    Velocity = 0.0000
+    ThrustDir = 3.1416
+    ThrustPower = 0.0004
+    Thrust = 0.0000
+    Throttle = 0.0000
+    EngineState = 2
+    TurnRate = 0.0002
+    Lighting = 3
+    HitPointsMax = 216.0000
+    HitPoints = 216.0000
+    PowerPurity = 0.9900
+    PowerMax = 226.0000
+    Power = 226.0000
+    CoreEfficency = 0.0180
+    AntimatterMax = 4000.0000
+    Antimatter = 4000.0000
+    ShieldState = 0
+    ShieldFrequency = 180.50
+    SelectedWeapon = 0
+    TotalWeapons = 2
+    BirthTime = 0
+    LifeSpan = -1
+    CreationOCS = 0
+    CloakState = -1
+    CloakStrength = 0.0
+    ShieldVisibility = 0.0
+    CurrentVisibility = 1.0
+    Visibility = 1.0
+    DamageControl = 0
+    ComChannel = 31000
+    AIFlags = 0
+    PermissionUID = 5
+    PermissionGID = 5
+    AnimationLastInterval = 31497697
+    AnimationInterval = 0
+    AnimationCurrentFrame = 0
+    AnimationTotalFrames = 0
+    AnimationCycleCount = 0
+    AnimationCycleTimes = 0
+    BeginWeapon
+        Flags = 0
+        EmissionType = 0
+        OCSCode = 21
+        Amount = 0
+        Max = 0
+        CreatePower = 2.5000
+        Power = 5.0000
+        Range = 600
+        Delay = 300
+        LastUsed = 0
+        FireSoundCode = 0
+    EndWeapon
+    BeginWeapon
+        Flags = 0
+        EmissionType = 1
+        OCSCode = 50
+        Amount = 32
+        Max = 32
+        CreatePower = 0.0000
+        Power = 20.0000
+        Range = 0
+        Delay = 1000
+        LastUsed = 0
+        FireSoundCode = 0
+    EndWeapon
+EndXSWObject
+
+
+# ###########################################################################
+#
+#   Weapons fire objects
+#
+#	Each time you use a weapon, the Object Create Script for
+#	that weapon will be called and one of these Object Parameter
+#	Macros will be used to create the object(s) representing
+#	the weapons fire.
+#
+#	Do not change the name of the weapon OPMs in this section
+#	without good reason, because the names are highly standardized.
+#
+
+# NULLWeapon
+BeginXSWObject = 60
+    Name = NULL Weapon
+    Type = 5
+    ImageSet = 60
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0.002
+    VelocityMax = 0.07 
+    ThrustDir = 3.141593
+    ThrustPower = 0.0002
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0002
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1500
+    Visibility = 1.0
+EndXSWObject
+
+
+# Stream phazer: yellow
+BeginXSWObject = 61
+    Name = Phazer Stream Yellow
+    Type = 6
+    ImageSet = 10
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0.000
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0004
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1300
+    Visibility = 1.0
+EndXSWObject
+
+# Stream phazer: orange
+BeginXSWObject = 62
+    Name = Phazer Stream Orange
+    Type = 6
+    ImageSet = 13
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0.000
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0004
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1300    
+    Visibility = 1.0    
+EndXSWObject
+
+# Stream phazer: purple
+BeginXSWObject = 63
+    Name = Phazer Stream Purple
+    Type = 6
+    ImageSet = 12
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0.000
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0004
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1300
+    Visibility = 1.0
+EndXSWObject
+
+
+# Pulse phazer
+BeginXSWObject = 64
+    Name = Phazer Pulse
+    Type = 5
+    ImageSet = 60
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0.002
+    VelocityMax = 0.07  
+    ThrustDir = 3.141593
+    ThrustPower = 0.0002
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1600
+    Visibility = 1.0
+EndXSWObject
+
+
+# Stream disruptor
+BeginXSWObject = 65
+    Name = Disruptor Stream
+    Type = 6
+    ImageSet = 11
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0004
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1300
+    Visibility = 1.0
+EndXSWObject
+
+
+# Pulse disruptor
+BeginXSWObject = 66
+    Name = Disruptor Pulse
+    Type = 5
+    ImageSet = 61
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0.0002
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1800
+    Visibility = 1.0
+EndXSWObject
+
+
+# Pulse polaron
+BeginXSWObject = 67
+    Name = Polaron Pulse
+    Type = 5
+    ImageSet = 63
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0.0002
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1800
+    Visibility = 1.0
+EndXSWObject
+
+
+# Expanding sphere phazer
+BeginXSWObject = 68
+    Name = Phazer Expanding Sphere
+    Type = 7
+    ImageSet = 10
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0.000
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0004
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1300
+    Visibility = 1.0
+EndXSWObject
+
+# Bolt Plasma
+BeginXSWObject = 69
+    Name = Bolt Plasma
+    Type = 5
+    ImageSet = 61
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0.0002
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 5000
+    Visibility = 1.0
+EndXSWObject
+
+# Cutting Beam
+BeginXSWObject = 70
+    Name = Cutting Beam
+    Type = 6
+    ImageSet = 11
+    Size = 8
+    ScannerRange = 80
+    Velocity = 0
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0004
+    AntimatterMax = 100
+    Antimatter = 100
+    LifeSpan = 1300
+    Visibility = 1.0
+EndXSWObject
+
+
+# Photon torpedo
+BeginXSWObject = 71
+    Name = Photon Torpedo
+    Type = 5
+    ImageSet = 62
+    Size = 15
+    ScannerRange = 80
+    Velocity = 0
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0.0003
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0001
+    AntimatterMax = 2
+    Antimatter = 2
+    LifeSpan = -1
+    Visibility = 1.0
+EndXSWObject
+
+# Plasma Torpedo
+BeginXSWObject = 72
+    Name = Plasma Torpedo
+    Type = 5
+    ImageSet = 61
+    Size = 15
+    ScannerRange = 80
+    Velocity = 0
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0.0003
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0001
+    AntimatterMax = 2
+    Antimatter = 2
+    LifeSpan = -1
+    Visibility = 1.0
+EndXSWObject
+
+# Quantom Torpedo
+BeginXSWObject = 73
+    Name = Quantom Torpedo
+    Type = 5
+    ImageSet = 64
+    Size = 15
+    ScannerRange = 80
+    Velocity = 0
+    VelocityMax = 0.07
+    ThrustDir = 3.141593
+    ThrustPower = 0.0003
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0001
+    AntimatterMax = 2
+    Antimatter = 2
+    LifeSpan = -1
+    Visibility = 1.0
+EndXSWObject
+
+
+# APC (Atmospheric Penetrating Cruise) Warhead
+BeginXSWObject = 75
+    Name = APC Warhead
+    Type = 5
+    ImageSet = 150
+    Size = 15
+    # Longer scanner range
+    ScannerRange = 200
+    Velocity = 0
+    # Slower maximum velocity
+    VelocityMax = 0.05
+    ThrustDir = 3.141593
+    ThrustPower = 0.0001
+    Thrust = 0
+    Throttle = 1
+    EngineState = 2
+    TurnRate = 0.0001
+    AntimatterMax = 6
+    Antimatter = 6
+    LifeSpan = -1
+    Visibility = 1.0
+EndXSWObject

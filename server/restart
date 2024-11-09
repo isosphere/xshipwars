@@ -1,0 +1,48 @@
+#!/bin/csh -f
+
+#   ShipWars Server - Restart Script
+#
+#       This is a sample restart script.  It assumes the universe files
+#	are in the current directory (the directory this file is in).
+#       You should modify this script file to comform to the way you have
+#       the server set up.
+#
+
+#   Specify your universe files set here:
+#
+set UNVIN  = db/generic_in.unv
+set UNVOUT = db/generic_out.unv
+set UNVOLD = db/generic_old.unv
+
+#   Specify your configuration file
+#
+set CONF = etc/generic.conf
+
+
+
+#   Copy the original (in) database file to a backup (old).
+#
+if (-r $UNVIN) then
+        mv -f $UNVIN $UNVOLD
+endif
+
+
+#   Move (if exists) the new database (out) to the original.
+#   If the new universe (out) does not exist, copy the backup to
+#   the original (in).
+#
+if (-r $UNVOUT) then
+        mv -f $UNVOUT $UNVIN
+else
+        cp $UNVOLD $UNVIN
+endif
+
+
+#   Run the server, the first parameter must be the name of the
+#   server's configuration file.
+#
+if (-r $CONF) then
+        bin/swserv $CONF
+else
+        echo "Cannot find configuration file: $CONF"
+endif

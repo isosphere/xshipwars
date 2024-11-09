@@ -1,0 +1,5 @@
+ALL_SRC_DIRS=server
+all install clean:
+	@for subdir in $(ALL_SRC_DIRS); do				\
+	  make -C $$subdir -f Makefile $@; 				\
+	done

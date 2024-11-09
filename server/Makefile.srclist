@@ -1,0 +1,26 @@
+HDR = siteban.h swserv.h
+SRC = auxconn.cpp cmd.cpp cmdboot.cpp cmdchown.cpp cmdcreate.cpp \
+      cmdcreateplayer.cpp cmddebug.cpp cmddisk.cpp cmdeco.cpp cmdeta.cpp \
+      cmdexamine.cpp cmdfind.cpp cmdhelp.cpp cmdid.cpp cmdkill.cpp \
+      cmdlink.cpp cmdmemory.cpp cmdnetstat.cpp cmdplugin.cpp cmdps.cpp \
+      cmdrecycle.cpp cmdrecycleplayer.cpp cmdsaveunv.cpp cmdscore.cpp \
+      cmdset.cpp cmdshutdown.cpp cmdsiteban.cpp cmdsynctime.cpp \
+      cmdsysparm.cpp cmdtest.cpp cmdunrecycle.cpp cmdversion.cpp \
+      cmdwall.cpp cmdwho.cpp conn.cpp crypt.cpp ctype.cpp db.cpp \
+      dbfile.cpp dbrecycle.cpp dbutil.cpp df.cpp disk.cpp eco.cpp \
+      ecoutils.cpp export.cpp fio.cpp incoming.cpp log.cpp \
+      main.cpp net.cpp netcloak.cpp netcomchannel.cpp netcommesg.cpp \
+      netcslivemesg.cpp netcssysmesg.cpp netdmgctl.cpp neteco.cpp \
+      netelink.cpp netengine.cpp netfile.cpp netfirewep.cpp nethail.cpp \
+      netint.cpp netintercept.cpp netio.cpp netlighting.cpp netlogin.cpp \
+      netlogout.cpp netnotifydestroy.cpp netnotifyhit.cpp netobjcreate.cpp \
+      netobjfpose.cpp netobjmax.cpp netobjname.cpp netobjpose.cpp \
+      netobjsect.cpp netobjvalues.cpp netrecycleobj.cpp netrefresh.cpp \
+      netscore.cpp netshields.cpp netshieldvis.cpp netsound.cpp \
+      netstarchart.cpp netthrottle.cpp nettractorbeamlock.cpp netunits.cpp \
+      netwepdisarm.cpp netweplock.cpp netwepselect.cpp netwepunlock.cpp \
+      netwepvalues.cpp netwhoami.cpp networmhole.cpp ocs.cpp ocsfile.cpp \
+      opm.cpp opmfile.cpp plugins.cpp prochandle.cpp rcfile.cpp rengine.cpp \
+      schedual.cpp schedualmanage.cpp siteban.cpp strexp.cpp string.cpp \
+      timming.cpp unitconv.cpp unvfile.cpp unvmain.cpp unvmatch.cpp \
+      unvmath.cpp unvutil.cpp urlparse.cpp weapons.cpp

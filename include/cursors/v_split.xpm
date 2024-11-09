@@ -1,0 +1,22 @@
+/* XPM */
+static char * v_split_xpm[] = {
+"16 16 3 1",
+"       s None  c none",
+".	c #000000000000",
+"X	c #FFFFFFFFFFFF",
+"        .       ",
+"       .X.      ",
+"      .XXX.     ",
+"     .XXXXX.    ",
+"     ...X...    ",
+"       .X.      ",
+"........X.....  ",
+".XXXXXXXXXXXXX. ",
+".XXXXXXXXXXXXX. ",
+"........X.....  ",
+"       .X.      ",
+"     ...X...    ",
+"     .XXXXX.    ",
+"      .XXX.     ",
+"       .X.      ",
+"        .       "};

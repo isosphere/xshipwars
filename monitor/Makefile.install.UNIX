@@ -1,0 +1,57 @@
+# Generated automatically from Makefile.install.UNIX.in by configure.
+# Install values and rules for UNIX
+#
+#   Do not use this Makefile directly! It is intended to be called
+#   by another Makefile.
+#
+#   Note, the following parameters must be already defined by
+#   the calling Makefile:
+#
+#	BIN
+#	PREFIX
+#
+
+INSTALL      = install
+
+INSTBINFLAGS = -m 0755
+INSTUIDFLAGS = -m 4755
+INSTLIBFLAGS = -m 0644
+INSTINCFLAGS = -m 0644
+INSTMANFLAGS = -m 0644
+INSTCFGFLAGS = -m 0644
+INSTDATFLAGS = -m 0644
+
+COPY      = cp
+COPYFLAGS = -v -f
+
+MKDIR      = mkdir
+MKDIRFLAGS = -p
+
+GAMES_DIR          = $(PREFIX)/games
+XSW_DIR            = $(PREFIX)/share/games/xshipwars
+MONITOR_IMAGES_DIR = $(XSW_DIR)/images/monitor
+
+HR = "-------------------------------------------------------------------------"
+
+install:
+	$(MKDIR) $(MKDIRFLAGS) $(GAMES_DIR)
+	$(INSTALL) $(INSTBINFLAGS) $(BIN) $(GAMES_DIR)
+
+	$(MKDIR) $(MKDIRFLAGS) $(MONITOR_IMAGES_DIR)
+	$(INSTALL) $(INSTDATFLAGS) images/* $(MONITOR_IMAGES_DIR)
+
+	@echo $(HR)
+	@echo "Program $(BIN) installed in:"
+	@echo " "
+	@echo "        $(GAMES_DIR)"
+	@echo " "
+	@echo "Data files installed in:"
+	@echo " "
+	@echo "        $(MONITOR_IMAGES_DIR)"
+	@echo " "
+	@echo $(HR)
+	@echo " "
+	@echo "Installation complete!"
+	@echo " "
+	@echo "To run the application, use the command \"$(BIN) &\""
+	@echo " "

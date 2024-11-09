@@ -1,0 +1,67 @@
+# Install values and rules for UNIX
+#
+#   Do not use this Makefile directly! It is intended to be called
+#   by another Makefile.
+#
+#   Note, the following parameters must be already defined by
+#   the calling Makefile:
+#
+#	BIN
+#	PREFIX
+#
+
+INSTALL      = install
+INSTBINFLAGS = -m 0555
+INSTUIDFLAGS = -m 4755
+INSTLIBFLAGS = -m 0555
+INSTINCFLAGS = -m 0644
+INSTMANFLAGS = -m 0644
+INSTCFGFLAGS = -m 0644
+INSTDATFLAGS = -m 0644
+
+COPY      = cp
+COPYFLAGS = -i -v
+
+MKDIR      = mkdir
+MKDIRFLAGS = -p
+
+
+GAMES_DIR   = $(PREFIX)/games
+XSW_DIR     = $(PREFIX)/share/games/xshipwars
+XSW_ETC_DIR = $(XSW_DIR)/etc
+
+XSW_CFG_FILE   = xshipwarsrc
+UNIVERSES_FILE = universes
+
+HR = "-------------------------------------------------------------------------"
+
+install:
+	$(MKDIR) $(MKDIRFLAGS) $(GAMES_DIR)
+	$(INSTALL) $(INSTBINFLAGS) $(BIN) $(GAMES_DIR)
+
+	$(MKDIR) $(MKDIRFLAGS) $(XSW_ETC_DIR)
+	$(INSTALL) $(INSTCFGFLAGS) $(XSW_CFG_FILE) $(XSW_ETC_DIR)
+	$(INSTALL) $(INSTCFGFLAGS) $(UNIVERSES_FILE) $(XSW_ETC_DIR)
+
+	@echo $(HR)
+	@echo "Program $(BIN) installed in:"
+	@echo " "
+	@echo "        $(GAMES_DIR)"
+	@echo " "
+	@echo "Data files installed in:"
+	@echo " "
+	@echo "        $(XSW_ETC_DIR)"
+	@echo " "
+	@echo $(HR)
+	@echo " "
+	@echo "Next, you need to install any of the following (if you have not done so"
+	@echo "already):"
+	@echo " "
+	@echo "    * Client data files (version may be older, but that is okay)."
+	@echo "    * Atleast one graphics theme."
+	@echo " "
+	@echo "All of the above are available from the same location where you obtained"
+	@echo "this package."
+	@echo " "
+	@echo "To run the application, use the command \"$(BIN) &\""
+	@echo " "

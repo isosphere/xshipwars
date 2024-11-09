@@ -1,0 +1,130 @@
+#!/bin/sh
+#
+# Platform Configurator (pconf) calling script
+#
+# Edit only if you are the vendor, end users should not modify this file!
+#
+
+# ##############################################################################
+#
+# Vendor Editable Section
+#
+
+# Source files prefix directory:
+#
+SRC_DIR=unvedit
+
+# Platforms configuration file, this file lists all defined platforms this
+# program is ported to:
+#
+PCONF_PLATFORMS_INI=$SRC_DIR/platforms.ini
+
+# This platform information file:
+#
+PCONF_THIS_PLATFORM_INI=$SRC_DIR/this_platform.ini
+
+# Output Makefile (should be same as the one specified in 
+# PCONF_PLATFORMS_INI):
+#
+PCONF_MAKEFILE_OUTPUT=$SRC_DIR/Makefile
+
+
+# Referances to Platform Configurator's files:
+#
+
+# Prefix directory:
+PCONF_PREFIX=pconf
+
+# Generated pconf binary:
+PCONF=$PCONF_PREFIX/pconf
+
+# Tempory variables (don't touch):
+PCONF_NEED_PLATFORM_INFO=1
+PCONF_NEED_COMPILE=1
+PCONF_GENERATE_SUCCESS=0
+
+
+# ##############################################################################
+#
+# No need to edit below this line
+#
+
+# Special `reset' case
+if [ "$1" = "--reset" ]; then
+ echo "Resetting Platform Configurator for a clean distribution..."
+
+ # Remove generated pconf binary
+ if [ -f $PCONF ]; then
+  rm -v $PCONF
+ fi
+
+ # Remove this platform information file
+ if [ -f $PCONF_THIS_PLATFORM_INI ]; then
+  rm -v $PCONF_THIS_PLATFORM_INI
+ fi
+
+ # Remove generated pconf output Makefile
+ if [ -f $PCONF_MAKEFILE_OUTPUT ]; then
+  rm -v $PCONF_MAKEFILE_OUTPUT
+ fi
+
+ echo "Done."
+ exit 0
+fi
+
+
+
+# Begin checking for what we need to generate or not.
+
+# Has pconf been compiled for this system?
+if [ -f $PCONF ]; then
+ PCONF_NEED_COMPILE=0
+fi
+
+# Does platform information file exist?
+if [ -f $PCONF_THIS_PLATFORM_INI ]; then
+ PCONF_NEED_PLATFORM_INFO=0
+fi
+
+
+
+# Need to generate platform information file?
+if [ $PCONF_NEED_PLATFORM_INFO = "1" ]; then
+ echo "Collecting information about this platform..."
+ uname -s >> $PCONF_THIS_PLATFORM_INI
+ uname -r >> $PCONF_THIS_PLATFORM_INI
+ uname -m >> $PCONF_THIS_PLATFORM_INI
+fi
+
+
+# Need to generate (compile) pconf?
+if [ $PCONF_NEED_COMPILE = "1" ]; then
+ echo "Generating Platform Configurator and testing system's compiler..."
+ cd $PCONF_PREFIX
+ make clean
+ make
+ cd ..
+
+ # Check if generation of pconf was successful
+ if [ -f $PCONF ]; then
+  PCONF_GENERATE_SUCCESS=1
+ fi
+ if [ $PCONF_GENERATE_SUCCESS = "0" ]; then
+  echo "Could not generate Platform Configurator and/or compiler not functioning,"
+  echo "you may not be able to compile/build any programs on this system. Please "
+  echo "review any errors encountered above and consult with vendors."
+  echo " "
+  exit 1
+ fi
+ if [ $PCONF_GENERATE_SUCCESS = "1" ]; then
+  echo " "
+  echo "Compiler passed all compatibility tests!"
+  echo " "
+ fi
+fi
+
+# Run pconf
+if [ -f $PCONF ]; then
+ $PCONF $PCONF_PLATFORMS_INI $@
+ exit $?
+fi
